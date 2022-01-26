@@ -422,6 +422,8 @@ private:
     void checkForInvalidFree(void* block);
     bool checkWithinPages(const char* block, void*& currentPage);
     bool checkAlignment(void* currentPage, const char* block);
+    bool checkCorruption(const char* block);
+    bool checkPadding(const char* padPtr);
     bool checkMultipleFree(char* block);
 };
 

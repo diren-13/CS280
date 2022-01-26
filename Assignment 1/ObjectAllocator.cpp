@@ -63,6 +63,23 @@ ObjectAllocator::~ObjectAllocator()
 
 void* ObjectAllocator::Allocate(const char* label)
 {
+    if (config.UseCPPMemManager_)
+    {
+        try
+        {
+            char* obj = new char[stats.ObjectSize_];
+            ++stats.Allocations_;
+            ++stats.ObjectsInUse_;
+
+            stats.MostObjects_ = MAX(stats.MostObjects_, stats.ObjectsInUse_);
+            return obj;
+        }
+        catch(const std::bad_alloc& )
+        {
+            throw OAException{OAException::E_NO_MEMORY, "No physical memory left."};
+        }
+    }
+
     // Take block from free list
     if (FreeList_ == nullptr)
     {
@@ -72,7 +89,6 @@ void* ObjectAllocator::Allocate(const char* label)
     char* allocatedObject = TO_CHAR_PTR(FreeList_);
     FreeList_ = FreeList_->Next;
 
-    // set blocks to allocated pattern
     setPattern(allocatedObject, ALLOCATED_PATTERN);
     incrementStats();
     createHeader(allocatedObject, label);
@@ -82,6 +98,16 @@ void* ObjectAllocator::Allocate(const char* label)
 
 void ObjectAllocator::Free(void* Object)
 {
+    if (config.UseCPPMemManager_)
+    {
+        delete[] TO_CHAR_PTR(Object);
+        
+        ++stats.Deallocations_;
+        --stats.ObjectsInUse_;
+
+        return;
+    }
+
     checkForInvalidFree(Object);
 
     GenericObject* temp = TO_GENERIC_OBJECT_PTR(Object);
@@ -92,8 +118,7 @@ void ObjectAllocator::Free(void* Object)
     setPattern(freeListCharPtr, FREED_PATTERN);
     destroyHeader(freeListCharPtr);
 
-    // Set stats
-
+    decrementStats();
 }
 
 unsigned ObjectAllocator::DumpMemoryInUse(DUMPCALLBACK) const
@@ -147,7 +172,7 @@ void ObjectAllocator::SetDebugState(bool state)
 /*-------------------------------------------------------------------------------------*/
 void ObjectAllocator::createPage()
 {
-    if (config.MaxPages_ != 0 && stats.PagesInUse_ == config.MaxPages_)
+    if (config.MaxPages_ && stats.PagesInUse_ == config.MaxPages_)
     {
         throw OAException {OAException::E_NO_PAGES, "Maximum number of pages have been reached."};
     }
@@ -214,6 +239,12 @@ void ObjectAllocator::insertBlocks(char* page)
 
                 break;
             }
+            case OAConfig::hbExternal:
+            {
+                char* header = freeListCharPtr - PAD_BYTES - config.HBlockInfo_.size_;
+                memset(header, 0, config.HBlockInfo_.size_);
+                break;
+            }
             default: break;
         } 
 
@@ -274,11 +305,18 @@ void ObjectAllocator::createHeader(char* block, const char* label)
             try
             {
                 *info = new MemBlockInfo;
-                (*info)->alloc_num  = 0;
+                (*info)->alloc_num  = stats.Allocations_;
                 (*info)->in_use     = true;
                 
-                (*info)->label = new char[strlen(label) + 1];
-                strcpy((*info)->label, label);
+                if (label)
+                {
+                    (*info)->label = new char[strlen(label) + 1];
+                    strcpy((*info)->label, label);
+                }
+                else
+                {
+                    (*info)->label = nullptr;
+                }
             }
             catch(const std::bad_alloc&)
             {
@@ -333,6 +371,7 @@ void ObjectAllocator::destroyHeader(char* block)
             delete[] (*info)->label;
             delete *info;
 
+            memset(header, 0, config.HBlockInfo_.size_);
             break;
         }
         default: break;
@@ -387,6 +426,7 @@ void ObjectAllocator::checkForInvalidFree(void* block)
     void* currentPage = nullptr;
     char* currentBlock = TO_CHAR_PTR(block);
 
+    // False if not within a page
     if (!checkWithinPages(currentBlock, currentPage))
     {
         throw OAException{OAException::E_BAD_BOUNDARY, "Object address is not within a page."};
@@ -396,6 +436,12 @@ void ObjectAllocator::checkForInvalidFree(void* block)
     if (!checkAlignment(currentPage, currentBlock))
     {
         throw OAException{OAException::E_BAD_BOUNDARY, "Object that is trying to be freed is misaligned."};
+    }
+
+    // True if corrupted
+    if (checkCorruption(currentBlock))
+    {
+        throw OAException{OAException::E_CORRUPTED_BLOCK, "Pad bytes have been overwritten."};
     }
 
     // True is object has already been freed
@@ -435,6 +481,23 @@ bool ObjectAllocator::checkAlignment(void* currentPage, const char* block)
     const ptrdiff_t OFFSET = BLOCK_TO_PAGE - PTR_SIZE;
 
     return (static_cast<size_t>(OFFSET) % blockSize == 0);
+}
+
+bool ObjectAllocator::checkCorruption(const char* block)
+{
+    const size_t PAD_BYTES = static_cast<size_t>(config.PadBytes_);
+    return !(checkPadding(block - PAD_BYTES) && checkPadding(block + stats.ObjectSize_));
+}
+
+bool ObjectAllocator::checkPadding(const char* padPtr)
+{
+    const size_t PAD_BYTES = static_cast<size_t>(config.PadBytes_);
+    for (size_t i = 0; i < PAD_BYTES; ++i)
+    { 
+        if (*(reinterpret_cast<const unsigned char*>(padPtr) + i) != PAD_PATTERN)
+            return false;
+    }
+    return true;
 }
 
 bool ObjectAllocator::checkMultipleFree(char* block)

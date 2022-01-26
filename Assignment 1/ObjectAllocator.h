@@ -406,25 +406,25 @@ private:
     /* Function Members                                                                */
     /*---------------------------------------------------------------------------------*/
     void createPage();
-    void insertPages(char* page);
-    void insertBlocks(char* page);
+    void insertPages(unsigned char* page);
+    void insertBlocks(unsigned char* page);
 
     void incrementStats();
     void decrementStats();
     
-    void createHeader(char* block, const char* label);
-    void setHeaderFlag(char* block, bool flag);
-    void setHeaderAllocNumber(char* block, int allocNum);
-    void destroyHeader(char* block);
+    void createHeader(unsigned char* block, const char* label);
+    void setHeaderFlag(unsigned char* block, bool flag);
+    void setHeaderAllocNumber(unsigned char* block, int allocNum);
+    void destroyHeader(unsigned char* block);
 
     // Debug Only Functions
-    void setPattern(char* block, unsigned char pattern);
+    void setPattern(unsigned char* block, unsigned char pattern);
     void checkForInvalidFree(void* block);
-    bool checkWithinPages(const char* block, void*& currentPage);
-    bool checkAlignment(void* currentPage, const char* block);
-    bool checkCorruption(const char* block);
-    bool checkPadding(const char* padPtr);
-    bool checkMultipleFree(char* block);
+    bool checkWithinPages(const unsigned char* block, void*& currentPage);
+    bool checkAlignment(void* currentPage, const unsigned char* block);
+    bool checkCorruption(const unsigned char* block);
+    bool checkPadding(const unsigned char* padPtr);
+    bool checkMultipleFree(unsigned char* block);
 };
 
 #endif

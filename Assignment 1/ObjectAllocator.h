@@ -408,6 +408,9 @@ private:
     void createPage();
     void insertPages(char* page);
     void insertBlocks(char* page);
+
+    void incrementStats();
+    void decrementStats();
     
     void createHeader(char* block, const char* label);
     void setHeaderFlag(char* block, bool flag);
@@ -416,7 +419,7 @@ private:
 
     // Debug Only Functions
     void setPattern(char* block, unsigned char pattern);
-    void checkForInvalidFree(char* block);
+    void checkForInvalidFree(void* block);
     bool checkWithinPages(const char* block, void*& currentPage);
     bool checkAlignment(void* currentPage, const char* block);
     bool checkMultipleFree(char* block);

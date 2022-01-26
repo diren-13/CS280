@@ -37,9 +37,8 @@ ObjectAllocator::ObjectAllocator(size_t objectSize, const OAConfig& c)
     stats.ObjectSize_ = objectSize;
 
     blockSize = objectSize;
-    blockSize += (2 * c.PadBytes_);                                                     // Add padding
-    blockSize += (c.HBlockInfo_.type_ == OAConfig::hbExternal)  ? PTR_SIZE 
-                                                                : c.HBlockInfo_.size_ ;  // Add header
+    blockSize += (2 * c.PadBytes_);     // Add padding
+    blockSize += c.HBlockInfo_.size_ ;  // Add header
     // Add alignment
     
     stats.PageSize_ = PTR_SIZE;
@@ -74,17 +73,8 @@ void* ObjectAllocator::Allocate(const char* label)
     FreeList_ = FreeList_->Next;
 
     // set blocks to allocated pattern
-    if (config.DebugOn_)
-    {
-        setPattern(allocatedObject, ALLOCATED_PATTERN);
-    }
-    
-    // Set stats
-    ++stats.Allocations_;
-    ++stats.ObjectsInUse_;
-    --stats.FreeObjects_;
-    stats.MostObjects_ = MAX(stats.MostObjects_, stats.ObjectsInUse_);
-
+    setPattern(allocatedObject, ALLOCATED_PATTERN);
+    incrementStats();
     createHeader(allocatedObject, label);
 
     return allocatedObject;
@@ -92,11 +82,7 @@ void* ObjectAllocator::Allocate(const char* label)
 
 void ObjectAllocator::Free(void* Object)
 {
-    // Check for double free
-    if (config.DebugOn_)
-    {
-        checkForInvalidFree(TO_CHAR_PTR(Object));
-    }
+    checkForInvalidFree(Object);
 
     GenericObject* temp = TO_GENERIC_OBJECT_PTR(Object);
     temp->Next = FreeList_;
@@ -107,9 +93,7 @@ void ObjectAllocator::Free(void* Object)
     destroyHeader(freeListCharPtr);
 
     // Set stats
-    ++stats.Deallocations_;
-    ++stats.FreeObjects_;
-    --stats.ObjectsInUse_;
+
 }
 
 unsigned ObjectAllocator::DumpMemoryInUse(DUMPCALLBACK) const
@@ -233,15 +217,30 @@ void ObjectAllocator::insertBlocks(char* page)
             default: break;
         } 
 
-        if (config.DebugOn_)
-        {
-            setPattern(freeListCharPtr, PAD_PATTERN);
-            setPattern(freeListCharPtr, UNALLOCATED_PATTERN);
-        }
+        setPattern(freeListCharPtr, PAD_PATTERN);
+        setPattern(freeListCharPtr, UNALLOCATED_PATTERN);
     }
 }
 
-void ObjectAllocator::createHeader(char* block, const char*)
+void ObjectAllocator::incrementStats()
+{
+    ++stats.Allocations_;
+    ++stats.ObjectsInUse_;
+
+    --stats.FreeObjects_;
+
+    stats.MostObjects_ = MAX(stats.MostObjects_, stats.ObjectsInUse_);
+}
+
+void ObjectAllocator::decrementStats()
+{
+    ++stats.Deallocations_;
+    ++stats.FreeObjects_;
+
+    --stats.ObjectsInUse_;
+}
+
+void ObjectAllocator::createHeader(char* block, const char* label)
 {
     switch (config.HBlockInfo_.type_)
     {
@@ -267,6 +266,25 @@ void ObjectAllocator::createHeader(char* block, const char*)
         }
         case OAConfig::hbExternal:
         {
+            // Move to header pointer
+            char* header = block - static_cast<size_t>(config.PadBytes_) - config.HBlockInfo_.size_;
+            MemBlockInfo** info = reinterpret_cast<MemBlockInfo**>(header);
+
+            // Create info struct
+            try
+            {
+                *info = new MemBlockInfo;
+                (*info)->alloc_num  = 0;
+                (*info)->in_use     = true;
+                
+                (*info)->label = new char[strlen(label) + 1];
+                strcpy((*info)->label, label);
+            }
+            catch(const std::bad_alloc&)
+            {
+                throw OAException{OAException::E_NO_MEMORY, "No physical memory available!"};
+            }
+
             break;
         }
         default: break;
@@ -307,6 +325,14 @@ void ObjectAllocator::destroyHeader(char* block)
         }
         case OAConfig::hbExternal:
         {
+            // Move to header pointer
+            char* header = block - static_cast<size_t>(config.PadBytes_) - config.HBlockInfo_.size_;
+            MemBlockInfo** info = reinterpret_cast<MemBlockInfo**>(header);
+
+            // delete label & info
+            delete[] (*info)->label;
+            delete *info;
+
             break;
         }
         default: break;
@@ -315,6 +341,9 @@ void ObjectAllocator::destroyHeader(char* block)
 
 void ObjectAllocator::setPattern(char* block, unsigned char pattern)
 {
+    if(!config.DebugOn_)
+        return;
+
     size_t interval = 0;
 
     switch (pattern)
@@ -350,23 +379,27 @@ void ObjectAllocator::setPattern(char* block, unsigned char pattern)
     }
 }
 
-void ObjectAllocator::checkForInvalidFree(char* block)
+void ObjectAllocator::checkForInvalidFree(void* block)
 {
-    // False if not within any page
+    if (!config.DebugOn_)
+        return;
+
     void* currentPage = nullptr;
-    if (!checkWithinPages(block, currentPage))
+    char* currentBlock = TO_CHAR_PTR(block);
+
+    if (!checkWithinPages(currentBlock, currentPage))
     {
         throw OAException{OAException::E_BAD_BOUNDARY, "Object address is not within a page."};
     }
     
     // False is misaligned
-    if (!checkAlignment(currentPage, block))
+    if (!checkAlignment(currentPage, currentBlock))
     {
         throw OAException{OAException::E_BAD_BOUNDARY, "Object that is trying to be freed is misaligned."};
     }
 
     // True is object has already been freed
-    if (checkMultipleFree(block))
+    if (checkMultipleFree(currentBlock))
     {
         throw OAException{OAException::E_MULTIPLE_FREE, "Object has already been freed."};
     }    

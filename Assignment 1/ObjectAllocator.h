@@ -417,8 +417,14 @@ private:
     void setHeaderAllocNumber(unsigned char* block, int allocNum);
     void destroyHeader(unsigned char* block);
 
+    unsigned int computeLeftAlign(unsigned int alignment, unsigned int offset);
+    unsigned int computeInterAlign(unsigned int alignment, unsigned int offset);
+
     // Debug Only Functions
     void setPattern(unsigned char* block, unsigned char pattern);
+    void setLeftAlignment(unsigned char* head);
+    void setInterAlignment(unsigned char* block);
+
     void checkForInvalidFree(void* block) const;
     bool checkWithinPages(const unsigned char* block, void*& currentPage) const;
     bool checkAlignment(void* currentPage, const unsigned char* block) const;

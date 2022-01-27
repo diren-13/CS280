@@ -419,12 +419,12 @@ private:
 
     // Debug Only Functions
     void setPattern(unsigned char* block, unsigned char pattern);
-    void checkForInvalidFree(void* block);
-    bool checkWithinPages(const unsigned char* block, void*& currentPage);
-    bool checkAlignment(void* currentPage, const unsigned char* block);
-    bool checkCorruption(const unsigned char* block);
-    bool checkPadding(const unsigned char* padPtr);
-    bool checkMultipleFree(unsigned char* block);
+    void checkForInvalidFree(void* block) const;
+    bool checkWithinPages(const unsigned char* block, void*& currentPage) const;
+    bool checkAlignment(void* currentPage, const unsigned char* block) const;
+    bool checkCorruption(const unsigned char* block) const;
+    bool checkPadding(const unsigned char* padPtr) const;
+    bool checkMultipleFree(unsigned char* block) const;
 };
 
 #endif

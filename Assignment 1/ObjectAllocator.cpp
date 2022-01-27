@@ -154,9 +154,37 @@ unsigned ObjectAllocator::DumpMemoryInUse(DUMPCALLBACK fn) const
     return stats.ObjectsInUse_;
 }
 
-unsigned ObjectAllocator::ValidatePages(VALIDATECALLBACK) const
+unsigned ObjectAllocator::ValidatePages(VALIDATECALLBACK fn) const
 {
-    return 0;
+    const size_t PAD_BYTES = static_cast<size_t>(config.PadBytes_);
+
+    unsigned int numCorrupted = 0;
+
+    // Traverse pages
+    GenericObject* pagePtr = PageList_;
+    for (size_t i = 0; i < stats.PagesInUse_; ++i)
+    {
+        const unsigned char* block = TO_UCHAR_PTR(pagePtr) + PTR_SIZE + PAD_BYTES + config.HBlockInfo_.size_;
+
+        for (size_t j = 0; j < config.ObjectsPerPage_; ++j)
+        {
+            // Check corruption in each block
+            bool corrupted = checkCorruption(block);
+
+            if (corrupted)
+            {
+                ++numCorrupted;
+                fn(block, stats.ObjectSize_);
+            }
+
+            block += blockSize;
+        }
+
+        pagePtr = pagePtr->Next;
+    }
+
+    return numCorrupted;
+
 }
 
 unsigned ObjectAllocator::FreeEmptyPages()
@@ -454,7 +482,7 @@ void ObjectAllocator::setPattern(unsigned char* block, unsigned char pattern)
     }
 }
 
-void ObjectAllocator::checkForInvalidFree(void* block)
+void ObjectAllocator::checkForInvalidFree(void* block) const
 {
     if (!config.DebugOn_)
         return;
@@ -487,7 +515,7 @@ void ObjectAllocator::checkForInvalidFree(void* block)
     }    
 }
 
-bool ObjectAllocator::checkWithinPages(const unsigned char* block, void*& currentPage)
+bool ObjectAllocator::checkWithinPages(const unsigned char* block, void*& currentPage) const
 {
     // Check if block is within a pages
     GenericObject* pagePtr = PageList_;
@@ -506,7 +534,7 @@ bool ObjectAllocator::checkWithinPages(const unsigned char* block, void*& curren
     return false;
 }
 
-bool ObjectAllocator::checkAlignment(void* currentPage, const unsigned char* block)
+bool ObjectAllocator::checkAlignment(void* currentPage, const unsigned char* block) const
 {
     const unsigned char* CURRENT_PAGE_C = TO_UCHAR_PTR(currentPage);
 
@@ -519,24 +547,24 @@ bool ObjectAllocator::checkAlignment(void* currentPage, const unsigned char* blo
     return (static_cast<size_t>(OFFSET) % blockSize == 0);
 }
 
-bool ObjectAllocator::checkCorruption(const unsigned char* block)
+bool ObjectAllocator::checkCorruption(const unsigned char* block) const
 {
     const size_t PAD_BYTES = static_cast<size_t>(config.PadBytes_);
     return !(checkPadding(block - PAD_BYTES) && checkPadding(block + stats.ObjectSize_));
 }
 
-bool ObjectAllocator::checkPadding(const unsigned char* padPtr)
+bool ObjectAllocator::checkPadding(const unsigned char* padPtr) const
 {
     const size_t PAD_BYTES = static_cast<size_t>(config.PadBytes_);
     for (size_t i = 0; i < PAD_BYTES; ++i)
     { 
-        if (*(reinterpret_cast<const unsigned char*>(padPtr) + i) != PAD_PATTERN)
+        if (*(padPtr + i) != PAD_PATTERN)
             return false;
     }
     return true;
 }
 
-bool ObjectAllocator::checkMultipleFree(unsigned char* block)
+bool ObjectAllocator::checkMultipleFree(unsigned char* block) const
 {
     // Compare against all items in the free list
     GenericObject* blockGO = TO_GENERIC_OBJECT_PTR(block);

@@ -408,17 +408,24 @@ private:
     void createPage();
     void insertPages(unsigned char* page);
     void insertBlocks(unsigned char* page);
+    void freePage(GenericObject* page);
+
+    void createHeader(unsigned char* block, const char* label);
+    void setHeaderFlag(unsigned char* block, bool flag);
+    void setHeaderAllocNumber(unsigned char* block, int num);
+    void destroyHeader(unsigned char* block);
 
     void incrementStats();
     void decrementStats();
     
-    void createHeader(unsigned char* block, const char* label);
-    void setHeaderFlag(unsigned char* block, bool flag);
-    void setHeaderAllocNumber(unsigned char* block, int allocNum);
-    void destroyHeader(unsigned char* block);
+    unsigned int computeLeftAlign(unsigned int alignment, unsigned int offset) const;
+    unsigned int computeInterAlign(unsigned int alignment, unsigned int offset) const;
 
-    unsigned int computeLeftAlign(unsigned int alignment, unsigned int offset);
-    unsigned int computeInterAlign(unsigned int alignment, unsigned int offset);
+    unsigned char* firstBlock(unsigned char* page) const;
+
+    bool isPageEmpty(GenericObject* page) const;
+    bool isInPage(GenericObject* page, unsigned char* block) const;
+    bool isBlockAllocated(unsigned char* block) const;
 
     // Debug Only Functions
     void setPattern(unsigned char* block, unsigned char pattern);

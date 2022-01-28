@@ -21,6 +21,8 @@ consent of DigiPen Institute of Technology is prohibited.
 #define TO_GENERIC_OBJECT_PTR(pointer) reinterpret_cast<GenericObject*>(pointer)
 #define TO_UCHAR_PTR(pointer) reinterpret_cast<unsigned char*>(pointer)
 
+#define MAX(x, y) x > y ? x : y
+
 /*-------------------------------------------------------------------------------------*/
 /* Constructors & Destructors                                                          */
 /*-------------------------------------------------------------------------------------*/
@@ -34,8 +36,11 @@ ObjectAllocator::ObjectAllocator(size_t objectSize, const OAConfig& c)
     // Populate stats
     stats.ObjectSize_ = objectSize;
 
-    config.LeftAlignSize_   = computeLeftAlign(c.Alignment_, static_cast<unsigned int>(c.HBlockInfo_.size_ + c.PadBytes_ + PTR_SIZE));
-    config.InterAlignSize_  = computeInterAlign(c.Alignment_, static_cast<unsigned int>(objectSize + c.HBlockInfo_.size_ + 2 * c.PadBytes_));
+    unsigned int leftOffset = static_cast<unsigned int>(c.HBlockInfo_.size_ + c.PadBytes_ + PTR_SIZE);
+    config.LeftAlignSize_ = computeLeftAlign(c.Alignment_, leftOffset);
+
+    unsigned int interOffset = static_cast<unsigned int>(objectSize + c.HBlockInfo_.size_ + 2 * c.PadBytes_);
+    config.InterAlignSize_ = computeInterAlign(c.Alignment_, interOffset);
 
     blockSize = objectSize;
     blockSize += (2 * c.PadBytes_);         // Add padding
@@ -55,7 +60,7 @@ ObjectAllocator::~ObjectAllocator()
 {
     while(PageList_ != nullptr)
     {
-        GenericObject* temp = PageList_->Next;
+        GenericObject* temp = PageList_->Next;    
         delete[] TO_UCHAR_PTR(PageList_);
         PageList_ = temp;
     }
@@ -75,8 +80,7 @@ void* ObjectAllocator::Allocate(const char* label)
             ++stats.Allocations_;
             ++stats.ObjectsInUse_;
 
-            stats.MostObjects_ = (stats.MostObjects_ < stats.ObjectsInUse_) ? stats.ObjectsInUse_ 
-                                                                            : stats.MostObjects_ ;
+            stats.MostObjects_ = MAX(stats.MostObjects_, stats.ObjectsInUse_);
             return obj;
         }
         catch(const std::bad_alloc&)
@@ -91,14 +95,14 @@ void* ObjectAllocator::Allocate(const char* label)
         createPage();
     }
 
-    unsigned char* allocatedObject = TO_UCHAR_PTR(FreeList_);
+    unsigned char* obj = TO_UCHAR_PTR(FreeList_);
     FreeList_ = FreeList_->Next;
 
-    setPattern(allocatedObject, ALLOCATED_PATTERN);
+    setPattern(obj, ALLOCATED_PATTERN);
     incrementStats();
-    createHeader(allocatedObject, label);
+    createHeader(obj, label);
 
-    return allocatedObject;
+    return obj;
 }
 
 void ObjectAllocator::Free(void* Object)
@@ -119,9 +123,9 @@ void ObjectAllocator::Free(void* Object)
     temp->Next = FreeList_;
     FreeList_ = temp;
 
-    unsigned char* freeListCharPtr = TO_UCHAR_PTR(FreeList_);
-    setPattern(freeListCharPtr, FREED_PATTERN);
-    destroyHeader(freeListCharPtr);
+    unsigned char* cFL = TO_UCHAR_PTR(FreeList_);
+    setPattern(cFL, FREED_PATTERN);
+    destroyHeader(cFL);
 
     decrementStats();
 }
@@ -134,12 +138,11 @@ unsigned ObjectAllocator::DumpMemoryInUse(DUMPCALLBACK fn) const
     const size_t PAD_BYTES = static_cast<size_t>(config.PadBytes_);
 
     // Traverse pages
-    GenericObject* pagePtr = PageList_;
+    GenericObject* page = PageList_;
     for (size_t i = 0; i < stats.PagesInUse_; ++i)
     {
-        unsigned char* block = TO_UCHAR_PTR(pagePtr) + PTR_SIZE 
-                               + PAD_BYTES + config.HBlockInfo_.size_ 
-                               + config.LeftAlignSize_;
+        unsigned char* cP = TO_UCHAR_PTR(page);
+        unsigned char* block = firstBlock(cP);
 
         for (size_t j = 0; j < config.ObjectsPerPage_; ++j)
         {
@@ -149,10 +152,8 @@ unsigned ObjectAllocator::DumpMemoryInUse(DUMPCALLBACK fn) const
                 case OAConfig::hbExtended:
                 {
                     // Check flag for each header
-                    unsigned char* header = block - PAD_BYTES;
-                    header -= sizeof(char);
-
-                    if (*header)
+                    unsigned char* flag = block - PAD_BYTES - sizeof(char);
+                    if (*flag)
                     {
                         fn(block, stats.ObjectSize_);
                     }
@@ -161,8 +162,7 @@ unsigned ObjectAllocator::DumpMemoryInUse(DUMPCALLBACK fn) const
                 }
                 case OAConfig::hbExternal:
                 {
-                    unsigned char* header = block - PAD_BYTES;
-                    header -= config.HBlockInfo_.size_;
+                    unsigned char* header = block - PAD_BYTES - config.HBlockInfo_.size_;
                     MemBlockInfo** info = reinterpret_cast<MemBlockInfo**>(header);
 
                     if (*info && (*info)->in_use)
@@ -178,7 +178,7 @@ unsigned ObjectAllocator::DumpMemoryInUse(DUMPCALLBACK fn) const
             block += blockSize;
         }
 
-        pagePtr = pagePtr->Next;
+        page = page->Next;
     }
 
     return stats.ObjectsInUse_;
@@ -186,17 +186,14 @@ unsigned ObjectAllocator::DumpMemoryInUse(DUMPCALLBACK fn) const
 
 unsigned ObjectAllocator::ValidatePages(VALIDATECALLBACK fn) const
 {
-    const size_t PAD_BYTES = static_cast<size_t>(config.PadBytes_);
-
     unsigned int numCorrupted = 0;
 
     // Traverse pages
-    GenericObject* pagePtr = PageList_;
+    GenericObject* page = PageList_;
     for (size_t i = 0; i < stats.PagesInUse_; ++i)
     {
-        const unsigned char* block = TO_UCHAR_PTR(pagePtr) + PTR_SIZE 
-                                     + PAD_BYTES + config.HBlockInfo_.size_ 
-                                     + config.LeftAlignSize_;
+        unsigned char* cP = TO_UCHAR_PTR(page);
+        const unsigned char* block = firstBlock(cP);
 
         for (size_t j = 0; j < config.ObjectsPerPage_; ++j)
         {
@@ -212,7 +209,7 @@ unsigned ObjectAllocator::ValidatePages(VALIDATECALLBACK fn) const
             block += blockSize;
         }
 
-        pagePtr = pagePtr->Next;
+        page = page->Next;
     }
 
     return numCorrupted;
@@ -220,7 +217,16 @@ unsigned ObjectAllocator::ValidatePages(VALIDATECALLBACK fn) const
 
 unsigned ObjectAllocator::FreeEmptyPages()
 {
-    return 0;
+    if (PageList_ == nullptr)
+        return 0; 
+
+    unsigned int numFreed = 0;
+    
+    // Traverse pages
+    // GenericObject* prev = nullptr;
+    // GenericObject* page = PageList_;
+
+    return numFreed;
 }
 
 /*-------------------------------------------------------------------------------------*/
@@ -298,30 +304,30 @@ void ObjectAllocator::insertBlocks(unsigned char* page)
     // Prepare blocks and assign FreeList to point to the last block.
     for (size_t i = 0; i < config.ObjectsPerPage_; ++i)
     {
-        size_t offset = i ? blockSize 
-                          : PTR_SIZE + PAD_BYTES + config.HBlockInfo_.size_ + config.LeftAlignSize_;
+        size_t offset = i ? blockSize : PTR_SIZE + PAD_BYTES + config.HBlockInfo_.size_ + config.LeftAlignSize_;
 
+        unsigned char* cFL = TO_UCHAR_PTR(FreeList_);
         GenericObject* currentBlock = FreeList_;
-        GenericObject* nextBlock    = TO_GENERIC_OBJECT_PTR(TO_UCHAR_PTR(FreeList_) + offset);
+        GenericObject* nextBlock    = TO_GENERIC_OBJECT_PTR(cFL + offset);
 
         FreeList_ = i ? nextBlock : TO_GENERIC_OBJECT_PTR(page + offset);
         FreeList_->Next = i ? currentBlock : nullptr;
 
         // Set header flag where relevant
-        unsigned char* freeListCharPtr = TO_UCHAR_PTR(FreeList_);
+        cFL = TO_UCHAR_PTR(FreeList_);
 
         switch (config.HBlockInfo_.type_)
         {
             case OAConfig::hbBasic:
             case OAConfig::hbExtended:
             {
-                setHeaderFlag(freeListCharPtr, false);
-                setHeaderAllocNumber(freeListCharPtr, 0);
+                setHeaderFlag(cFL, false);
+                setHeaderAllocNumber(cFL, 0);
 
                 // Set use count and user-defined bytes for extended header
                 if (config.HBlockInfo_.type_ == OAConfig::hbExtended)
                 {
-                    unsigned char* setter = freeListCharPtr - PAD_BYTES - config.HBlockInfo_.size_;
+                    unsigned char* setter = cFL - PAD_BYTES - config.HBlockInfo_.size_;
                     memset(setter, 0, config.HBlockInfo_.size_ - sizeof(unsigned char) - sizeof(int));
                 }
 
@@ -329,7 +335,7 @@ void ObjectAllocator::insertBlocks(unsigned char* page)
             }
             case OAConfig::hbExternal:
             {
-                unsigned char* header = freeListCharPtr - PAD_BYTES - config.HBlockInfo_.size_;
+                unsigned char* header = cFL - PAD_BYTES - config.HBlockInfo_.size_;
                 memset(header, 0, config.HBlockInfo_.size_);
                 break;
             }
@@ -338,10 +344,10 @@ void ObjectAllocator::insertBlocks(unsigned char* page)
 
         if (i != config.ObjectsPerPage_ -1)
         {
-            setInterAlignment(freeListCharPtr);
+            setInterAlignment(cFL);
         }
-        setPattern(freeListCharPtr, PAD_PATTERN);
-        setPattern(freeListCharPtr, UNALLOCATED_PATTERN);
+        setPattern(cFL, PAD_PATTERN);
+        setPattern(cFL, UNALLOCATED_PATTERN);
     }
 }
 
@@ -352,8 +358,7 @@ void ObjectAllocator::incrementStats()
 
     --stats.FreeObjects_;
 
-    stats.MostObjects_ = (stats.MostObjects_ < stats.ObjectsInUse_) ? stats.ObjectsInUse_ 
-                                                                    : stats.MostObjects_ ;
+    stats.MostObjects_ = MAX(stats.MostObjects_, stats.ObjectsInUse_);
 }
 
 void ObjectAllocator::decrementStats()
@@ -382,8 +387,8 @@ void ObjectAllocator::createHeader(unsigned char* block, const char* label)
                 setter -= sizeof(int);              // Alloc Num
                 setter -= sizeof(short);            // Use Count
 
-                short* useCountPtr = reinterpret_cast<short*>(setter);
-                ++(*useCountPtr);
+                short* useCount = reinterpret_cast<short*>(setter);
+                ++(*useCount);
             }
 
             break;
@@ -431,15 +436,15 @@ void ObjectAllocator::setHeaderFlag(unsigned char* block, bool flag)
     *setter = static_cast<unsigned char>(flag);
 }
 
-void ObjectAllocator::setHeaderAllocNumber(unsigned char* block, int allocNum)
+void ObjectAllocator::setHeaderAllocNumber(unsigned char* block, int num)
 {
     unsigned char* setter = block;
     setter -= static_cast<size_t>(config.PadBytes_);
     setter -= sizeof(unsigned char);
     setter -= sizeof(int);
 
-    int* intSetter = reinterpret_cast<int*>(setter);
-    *intSetter = allocNum;
+    int* allocNum = reinterpret_cast<int*>(setter);
+    *allocNum = num;
 }
 
 void ObjectAllocator::destroyHeader(unsigned char* block)
@@ -471,7 +476,19 @@ void ObjectAllocator::destroyHeader(unsigned char* block)
     }
 }
 
-unsigned int ObjectAllocator::computeLeftAlign(unsigned int alignment, unsigned int offset)
+void ObjectAllocator::freePage(GenericObject* )
+{
+    // GenericObject* fL = FreeList_;
+    // GenericObject* prev = nullptr;
+
+    // Handle head
+
+
+    // delete[] TO_UCHAR_PTR(page);
+    // --stats.PagesInUse_;
+}
+
+unsigned int ObjectAllocator::computeLeftAlign(unsigned int alignment, unsigned int offset) const
 {
     if (config.Alignment_ <= 1)
         return 0;
@@ -480,13 +497,77 @@ unsigned int ObjectAllocator::computeLeftAlign(unsigned int alignment, unsigned 
     return (alignment * closestMultiple) - offset;
 }
 
-unsigned int ObjectAllocator::computeInterAlign(unsigned int alignment, unsigned int offset)
+unsigned int ObjectAllocator::computeInterAlign(unsigned int alignment, unsigned int offset) const
 {
     if (config.Alignment_ <= 1)
         return 0;
 
     unsigned int closestMultiple = offset / alignment + 1;
     return (alignment * closestMultiple) - offset;
+}
+
+unsigned char* ObjectAllocator::firstBlock(unsigned char* page) const
+{
+    return page + PTR_SIZE + config.LeftAlignSize_ + config.HBlockInfo_.size_ + config.PadBytes_;
+}
+
+bool ObjectAllocator::isPageEmpty(GenericObject* page) const
+{
+    GenericObject* fL = this->FreeList_;
+
+    unsigned int unallocatedObjects = 0;
+
+    while (fL)
+    {
+        unsigned char* cFL = TO_UCHAR_PTR(fL);
+        unsigned char* cP  = TO_UCHAR_PTR(page);
+
+        bool inPage = cFL > cP && cFL < (cP + stats.PageSize_);
+        if (inPage)
+        {
+            ++unallocatedObjects;
+
+            if (unallocatedObjects >= config.ObjectsPerPage_)
+                return true;
+        }
+
+        fL = fL->Next;
+    }
+    return false;
+}
+
+bool ObjectAllocator::isInPage(GenericObject* page, unsigned char* block) const
+{
+    unsigned char* cP = TO_UCHAR_PTR(page);
+    return block > cP && block < (cP + stats.PageSize_);
+}
+
+bool ObjectAllocator::isBlockAllocated(unsigned char* block) const
+{
+    switch (config.HBlockInfo_.type_)
+    {
+        case OAConfig::hbNone:
+        {
+            GenericObject* b    = TO_GENERIC_OBJECT_PTR(block);
+            GenericObject* fL   = FreeList_;
+
+            // Iterate through free list and compare addresses
+            while (fL != nullptr)
+            {
+                // If block is on the free list, it is unallocated
+                if (fL == b)
+                    return false;
+                
+                fL = fL->Next;
+            }
+
+            // Block cannot be found on the free list, therefore it has been allocated
+            return true;
+        }   
+        default: break;
+    }
+
+    return false;
 }
 
 void ObjectAllocator::setPattern(unsigned char* block, unsigned char pattern)
@@ -501,19 +582,19 @@ void ObjectAllocator::setPattern(unsigned char* block, unsigned char pattern)
         case UNALLOCATED_PATTERN:
         case FREED_PATTERN:
         {
-            unsigned char* ptrToPatternHead = block + PTR_SIZE;
+            unsigned char* patternHead = block + PTR_SIZE;
             interval = stats.ObjectSize_ - PTR_SIZE;
 
-            memset(ptrToPatternHead, pattern, interval);
+            memset(patternHead, pattern, interval);
 
             break;
         }
         case ALLOCATED_PATTERN:
         {
-            unsigned char* ptrToPatternHead = block;
+            unsigned char* patternHead = block;
             interval = stats.ObjectSize_;
 
-            memset(ptrToPatternHead, pattern, interval);
+            memset(patternHead, pattern, interval);
             break;
         }
         case PAD_PATTERN:
@@ -522,9 +603,9 @@ void ObjectAllocator::setPattern(unsigned char* block, unsigned char pattern)
             
             for (int i = 0; i < 2; ++i)
             {
-                unsigned char* ptrToPadHead = block;
-                ptrToPadHead += i ? stats.ObjectSize_ : -interval;
-                memset(ptrToPadHead, pattern, interval);
+                unsigned char* pad = block;
+                pad += i ? stats.ObjectSize_ : -interval;
+                memset(pad, pattern, interval);
             }
     
             break;
@@ -581,32 +662,32 @@ void ObjectAllocator::checkForInvalidFree(void* block) const
 bool ObjectAllocator::checkWithinPages(const unsigned char* block, void*& currentPage) const
 {
     // Check if block is within a pages
-    GenericObject* pagePtr = PageList_;
-    while(pagePtr != nullptr)
+    GenericObject* page = PageList_;
+    while(page != nullptr)
     {
-        const unsigned char* pagePtrC = TO_UCHAR_PTR(pagePtr);
+        const unsigned char* CP = TO_UCHAR_PTR(page);
 
-        if (block > pagePtrC && block < (pagePtrC + stats.PageSize_))
+        if (block > CP && block < (CP + stats.PageSize_))
         {
-            currentPage = static_cast<void*>(pagePtr);
+            currentPage = static_cast<void*>(page);
             return true;
         }
 
-        pagePtr = pagePtr->Next;
+        page = page->Next;
     }
     return false;
 }
 
 bool ObjectAllocator::checkAlignment(void* currentPage, const unsigned char* block) const
 {
-    const unsigned char* CURRENT_PAGE_C = TO_UCHAR_PTR(currentPage);
+    const unsigned char* CP = TO_UCHAR_PTR(currentPage);
 
     ptrdiff_t blockToPage = 0;
     ptrdiff_t offset = 0;
 
     if (config.Alignment_ && config.Alignment_ != 1)
     {
-        blockToPage = block - (CURRENT_PAGE_C);
+        blockToPage = block - (CP);
         offset = blockToPage - PTR_SIZE;
 
         return (static_cast<unsigned int>(offset) % config.Alignment_ == 0);
@@ -615,7 +696,7 @@ bool ObjectAllocator::checkAlignment(void* currentPage, const unsigned char* blo
     block -= static_cast<size_t>(config.PadBytes_);
     block -= config.HBlockInfo_.size_;
 
-    blockToPage = block - (CURRENT_PAGE_C);
+    blockToPage = block - (CP);
     offset = blockToPage - PTR_SIZE;
 
     return (static_cast<size_t>(offset) % blockSize == 0);
@@ -641,15 +722,15 @@ bool ObjectAllocator::checkPadding(const unsigned char* padPtr) const
 bool ObjectAllocator::checkMultipleFree(unsigned char* block) const
 {
     // Compare against all items in the free list
-    GenericObject* blockGO = TO_GENERIC_OBJECT_PTR(block);
-    GenericObject* freeListPtr = FreeList_;
+    GenericObject* b = TO_GENERIC_OBJECT_PTR(block);
+    GenericObject* fL = FreeList_;
 
-    while(freeListPtr != nullptr)
+    while(fL != nullptr)
     {
-        if (blockGO == freeListPtr)
+        if (b == fL)
             return true;
 
-        freeListPtr = freeListPtr->Next;
+        fL = fL->Next;
     }
     return false;
 }

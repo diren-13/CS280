@@ -143,13 +143,36 @@ unsigned ObjectAllocator::DumpMemoryInUse(DUMPCALLBACK fn) const
 
         for (size_t j = 0; j < config.ObjectsPerPage_; ++j)
         {
-            // Check flag for each header
-            unsigned char* header = block - PAD_BYTES;
-            header -= sizeof(char);     // Flag
-
-            if (*header)
+            switch (config.HBlockInfo_.type_)
             {
-                fn(block, stats.ObjectSize_);
+                case OAConfig::hbBasic:
+                case OAConfig::hbExtended:
+                {
+                    // Check flag for each header
+                    unsigned char* header = block - PAD_BYTES;
+                    header -= sizeof(char);
+
+                    if (*header)
+                    {
+                        fn(block, stats.ObjectSize_);
+                    }
+
+                    break;
+                }
+                case OAConfig::hbExternal:
+                {
+                    unsigned char* header = block - PAD_BYTES;
+                    header -= config.HBlockInfo_.size_;
+                    MemBlockInfo** info = reinterpret_cast<MemBlockInfo**>(header);
+
+                    if (*info && (*info)->in_use)
+                    {
+                        fn(block, stats.ObjectSize_);
+                    }
+
+                    break;
+                }
+                default: break;
             }
 
             block += blockSize;
@@ -450,7 +473,7 @@ void ObjectAllocator::destroyHeader(unsigned char* block)
 
 unsigned int ObjectAllocator::computeLeftAlign(unsigned int alignment, unsigned int offset)
 {
-    if (!config.Alignment_)
+    if (config.Alignment_ <= 1)
         return 0;
 
     unsigned int closestMultiple = offset / alignment + 1;
@@ -459,7 +482,7 @@ unsigned int ObjectAllocator::computeLeftAlign(unsigned int alignment, unsigned 
 
 unsigned int ObjectAllocator::computeInterAlign(unsigned int alignment, unsigned int offset)
 {
-    if (!config.Alignment_)
+    if (config.Alignment_ <= 1)
         return 0;
 
     unsigned int closestMultiple = offset / alignment + 1;

@@ -30,4 +30,8 @@
 *.exe
 *.out
 *.app
-Assignment 1/.vscode
+
+# Subfolders
+*/.vscode
+*/docs
+*/Doxyfile

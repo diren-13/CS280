@@ -381,15 +381,42 @@ public:
     /*---------------------------------------------------------------------------------*/
     /* Getter Functions                                                                */
     /*---------------------------------------------------------------------------------*/
-    const void* GetFreeList()   const;  // returns a pointer to the internal free list
-    const void* GetPageList()   const;  // returns a pointer to the internal page list
-    OAConfig    GetConfig()     const;  // returns the configuration parameters
-    OAStats     GetStats()      const;  // returns the statistics for the allocator
+
+    /********************************************************************************//*!
+    @brief  Gets the free list.
+
+    @return A pointer to the free list.
+    *//*********************************************************************************/
+    const void* GetFreeList() const;
+    /********************************************************************************//*!
+    @brief  Gets the page list.
+
+    @return A pointer to the page list.
+    *//*********************************************************************************/
+    const void* GetPageList() const;
+    /********************************************************************************//*!
+    @brief  Gets the configuration of the OA.
+
+    @return The configuration of the OA.
+    *//*********************************************************************************/
+    OAConfig GetConfig() const;
+    /********************************************************************************//*!
+    @brief  Gets the statistics of the OA.
+
+    @return The statistics for the OA.
+    *//*********************************************************************************/
+    OAStats GetStats() const;
 
     /*---------------------------------------------------------------------------------*/
     /* Setter Functions                                                                */
     /*---------------------------------------------------------------------------------*/
-    void SetDebugState(bool State);     // true=enable, false=disable
+    /********************************************************************************//*!
+    @brief  Sets the debug mode.
+
+    @param  State
+        The state to set the debug mode to.
+    *//*********************************************************************************/
+    void SetDebugState(bool State);
 
 private:
     /*---------------------------------------------------------------------------------*/
@@ -405,39 +432,217 @@ private:
     /*---------------------------------------------------------------------------------*/
     /* Function Members                                                                */
     /*---------------------------------------------------------------------------------*/
+    /********************************************************************************//*!
+    @brief  Creates a new page.
+    *//*********************************************************************************/
     void createPage();
-    void insertPages(unsigned char* page);
-    void insertBlocks(unsigned char* page);
+    /********************************************************************************//*!
+    @brief  Inserts a page into the page list.
+
+    @param  page
+        The page to insert.
+    *//*********************************************************************************/
+    void insertPage(GenericObject* page);
+    /********************************************************************************//*!
+    @brief  Sets up the blocks in an empty page and puts them into the free list.
+
+    @param  page
+        The page to set up the blocks in.
+    *//*********************************************************************************/
+    void setUpBlocks(GenericObject* page);
+    /********************************************************************************//*!
+    @brief  Frees a single page.
+
+    @param  page
+        The page to free.
+    *//*********************************************************************************/
     void freePage(GenericObject* page);
+    /********************************************************************************//*!
+    @brief  Creates a header for a given block. Only call this on Allocate.
 
-    void createHeader(unsigned char* block, const char* label);
+    @param  block
+        The block to create the header for.
+    @param  label 
+        The label for an external header. Defaults to a nullptr.
+    *//*********************************************************************************/
+    void createHeader(unsigned char* block, const char* label = nullptr);
+    /********************************************************************************//*!
+    @brief  Sets the flag for a header. This is only used for basic and extended headers.
+
+    @param  block
+        The block to set the header flag for.
+    @param  flag 
+        The flag to set. True if in use. False if not.
+    *//*********************************************************************************/
     void setHeaderFlag(unsigned char* block, bool flag);
+    /********************************************************************************//*!
+    @brief  Sets the allocation number for a header. 
+            This is only used for basic and extended headers.
+
+    @param  block
+        The block to set the header flag for.
+    @param  num 
+        The allocation number to set.
+    *//*********************************************************************************/
     void setHeaderAllocNumber(unsigned char* block, int num);
+    /********************************************************************************//*!
+    @brief  Destroys a header.
+
+    @param  block
+        The block to destroy the header for.
+    *//*********************************************************************************/
     void destroyHeader(unsigned char* block);
-
+    /********************************************************************************//*!
+    @brief  Increments the stats. Only to be called in Allocate.
+    *//*********************************************************************************/
     void incrementStats();
+    /********************************************************************************//*!
+    @brief  Decrements the stats. Only to be called in Free.
+    *//*********************************************************************************/
     void decrementStats();
-    
-    unsigned int computeLeftAlign(unsigned int alignment, unsigned int offset) const;
-    unsigned int computeInterAlign(unsigned int alignment, unsigned int offset) const;
+    /********************************************************************************//*!
+    @brief  Computes the alignment for an offset with respect to an alignment value.
 
-    unsigned char* firstBlock(unsigned char* page) const;
+    @param  alignment
+        The value to align to.
+    @param  offset
+        The offset between the start and end address.
 
+    @return The alignment amount for the offset with respect to the alignment value.
+    *//*********************************************************************************/
+    unsigned int computeAlignment(unsigned int alignment, unsigned int offset) const;
+    /********************************************************************************//*!
+    @brief  Gets the address of the first block in a page.
+
+    @param  page
+        The page to get the first block of..
+
+    @return The address of the first block in the page.
+    *//*********************************************************************************/
+    unsigned char* firstBlock(GenericObject* page) const;
+    /********************************************************************************//*!
+    @brief  Gets the address of a header for a block.
+
+    @param  block
+        The block to get the header of.
+
+    @return The address of the header for the block.
+    *//*********************************************************************************/
+    unsigned char* header(unsigned char* block) const;
+    /********************************************************************************//*!
+    @brief  Checks if a page is empty.
+
+    @param  page
+        The page to check.
+
+    @return True if the page is empty.
+    *//*********************************************************************************/
     bool isPageEmpty(GenericObject* page) const;
+    /********************************************************************************//*!
+    @brief  Checks if a block is in a page.
+
+    @param  page
+        The page to check against
+    @param  block
+        The block to check for.
+
+    @return True if the block is inside the page.
+    *//*********************************************************************************/
     bool isInPage(GenericObject* page, unsigned char* block) const;
+    /********************************************************************************//*!
+    @brief  Checks if a block as been allocated.
+
+    @param  block
+        The block to check for.
+
+    @return True if the block has been allocated.
+    *//*********************************************************************************/
     bool isBlockAllocated(unsigned char* block) const;
+    /********************************************************************************//*!
+    @brief  Sets a pattern for a block. For use in debug mode only.
 
-    // Debug Only Functions
+    @param  block
+        The block to set the pattern for.
+    @param  pattern
+        The pattern to set.
+    *//*********************************************************************************/
     void setPattern(unsigned char* block, unsigned char pattern);
-    void setLeftAlignment(unsigned char* head);
-    void setInterAlignment(unsigned char* block);
+    /********************************************************************************//*!
+    @brief  Sets the left alignment pattern for a page.
 
-    void checkForInvalidFree(void* block) const;
-    bool checkWithinPages(const unsigned char* block, void*& currentPage) const;
-    bool checkAlignment(void* currentPage, const unsigned char* block) const;
-    bool checkCorruption(const unsigned char* block) const;
-    bool checkPadding(const unsigned char* padPtr) const;
-    bool checkMultipleFree(unsigned char* block) const;
+    @param  page
+        The page to set the alignment for.
+    *//*********************************************************************************/
+    void setLeftAlignment(unsigned char* page);
+    /********************************************************************************//*!
+    @brief  Sets the internal alignment pattern for a block.
+
+    @param  block
+        The block to set the alignment for.
+    *//*********************************************************************************/
+    void setInterAlignment(unsigned char* block);
+    /********************************************************************************//*!
+    @brief  Checks for an invalid free. For use in debug mode only. Only call in Free.
+
+    @param  data
+        The data to check for.
+
+    @throws OAException, based on the type of invalid free.
+    *//*********************************************************************************/
+    void checkForInvalidFree(void* data) const;
+    /********************************************************************************//*!
+    @brief  Checks if the data is within any of the allocated pages. 
+            For use in debug mode only.
+            Always check this first.
+
+    @param  data
+        The data to check for.
+    @param  currentPage
+        An out parameter that indicates the page to check in.
+
+    @throws OAException for bad boundary.
+    *//*********************************************************************************/
+    void checkWithinPages(unsigned char* data, void*& currentPage) const;
+    /********************************************************************************//*!
+    @brief  Checks if the data is aligned within a page or to the specified alignment.
+            For use in debug mode only.
+            MUST BE CALLED AFTER checkWithinPages
+
+    @param  currentPage
+        The page to be check in.
+    @param  data
+        The data to check for.
+
+    @throws OAException for bad boundary.
+    *//*********************************************************************************/
+    void checkAlignment(void* currentPage, unsigned char* data) const;
+    /********************************************************************************//*!
+    @brief  Checks if left or right padding has been corrupted.
+
+    @param  block
+        The block to check for.
+
+    @return True if corrupted.
+    *//*********************************************************************************/
+    bool checkCorruption(unsigned char* block) const;
+    /********************************************************************************//*!
+    @brief  Checks if padding has been corrupted.
+
+    @param  padPtr
+        The address of the start of the padding in a sequence.
+
+    @return False if corrupted.
+    *//*********************************************************************************/
+    bool checkPadding(unsigned char* padPtr) const;
+    /********************************************************************************//*!
+    @brief  Checks if the block has already been freed.
+
+    @param  block
+        The block to check for.
+        
+    @throws OAException for multiple frees.
+    *//*********************************************************************************/
+    void checkMultipleFree(unsigned char* block) const;
 };
 
 #endif

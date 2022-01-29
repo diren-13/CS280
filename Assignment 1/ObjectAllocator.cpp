@@ -60,7 +60,7 @@ ObjectAllocator::~ObjectAllocator()
 {
     while(PageList_ != nullptr)
     {
-        GenericObject* temp = PageList_->Next;    
+        GenericObject* temp = PageList_->Next;
         delete[] TO_UCHAR_PTR(PageList_);
         PageList_ = temp;
     }
@@ -223,8 +223,35 @@ unsigned ObjectAllocator::FreeEmptyPages()
     unsigned int numFreed = 0;
     
     // Traverse pages
-    // GenericObject* prev = nullptr;
-    // GenericObject* page = PageList_;
+    GenericObject* page = PageList_;
+    GenericObject* prev = nullptr;
+
+    while (page != nullptr)
+    {
+        if (isPageEmpty(page))
+        {
+            GenericObject* next = page->Next;
+            freePage(page);
+            ++numFreed;
+            
+            // Handle head
+            if (!prev)
+            {
+                PageList_ = next; 
+            }
+            else
+            {
+                prev->Next = next;
+            }
+
+            page = next;
+        }
+        else
+        {
+            prev = page;
+            page = page->Next;
+        }
+    }
 
     return numFreed;
 }
@@ -351,24 +378,6 @@ void ObjectAllocator::insertBlocks(unsigned char* page)
     }
 }
 
-void ObjectAllocator::incrementStats()
-{
-    ++stats.Allocations_;
-    ++stats.ObjectsInUse_;
-
-    --stats.FreeObjects_;
-
-    stats.MostObjects_ = MAX(stats.MostObjects_, stats.ObjectsInUse_);
-}
-
-void ObjectAllocator::decrementStats()
-{
-    ++stats.Deallocations_;
-    ++stats.FreeObjects_;
-
-    --stats.ObjectsInUse_;
-}
-
 void ObjectAllocator::createHeader(unsigned char* block, const char* label)
 {
     switch (config.HBlockInfo_.type_)
@@ -466,8 +475,11 @@ void ObjectAllocator::destroyHeader(unsigned char* block)
             MemBlockInfo** info = reinterpret_cast<MemBlockInfo**>(header);
 
             // delete label & info
-            delete[] (*info)->label;
-            delete *info;
+            if (*info)
+            {
+                delete[] (*info)->label;
+                delete *info;
+            }
 
             memset(header, 0, config.HBlockInfo_.size_);
             break;
@@ -476,16 +488,59 @@ void ObjectAllocator::destroyHeader(unsigned char* block)
     }
 }
 
-void ObjectAllocator::freePage(GenericObject* )
+void ObjectAllocator::freePage(GenericObject* page)
 {
-    // GenericObject* fL = FreeList_;
-    // GenericObject* prev = nullptr;
+    GenericObject* fL = FreeList_;
+    GenericObject* prev = nullptr;
 
-    // Handle head
+    // Traverse freelist
+    while (fL != nullptr)
+    {
+        unsigned char* cFL = TO_UCHAR_PTR(fL);
 
+        if (isInPage(page, cFL))
+        {
+            GenericObject* next = fL->Next;
 
-    // delete[] TO_UCHAR_PTR(page);
-    // --stats.PagesInUse_;
+            if (prev)
+            {
+                prev->Next = next;
+            }
+            else
+            {
+                FreeList_ = next;
+            }
+
+            --stats.FreeObjects_;
+        }
+        else
+        {
+            prev = fL;
+        }
+
+        fL = fL->Next;
+    }
+
+    delete[] TO_UCHAR_PTR(page);
+    --stats.PagesInUse_;
+}
+
+void ObjectAllocator::incrementStats()
+{
+    ++stats.Allocations_;
+    ++stats.ObjectsInUse_;
+
+    --stats.FreeObjects_;
+
+    stats.MostObjects_ = MAX(stats.MostObjects_, stats.ObjectsInUse_);
+}
+
+void ObjectAllocator::decrementStats()
+{
+    ++stats.Deallocations_;
+    ++stats.FreeObjects_;
+
+    --stats.ObjectsInUse_;
 }
 
 unsigned int ObjectAllocator::computeLeftAlign(unsigned int alignment, unsigned int offset) const
@@ -493,7 +548,7 @@ unsigned int ObjectAllocator::computeLeftAlign(unsigned int alignment, unsigned 
     if (config.Alignment_ <= 1)
         return 0;
 
-    unsigned int closestMultiple = offset / alignment + 1;
+    const unsigned int closestMultiple = offset / alignment + 1;
     return (alignment * closestMultiple) - offset;
 }
 
@@ -502,7 +557,7 @@ unsigned int ObjectAllocator::computeInterAlign(unsigned int alignment, unsigned
     if (config.Alignment_ <= 1)
         return 0;
 
-    unsigned int closestMultiple = offset / alignment + 1;
+    const unsigned int closestMultiple = offset / alignment + 1;
     return (alignment * closestMultiple) - offset;
 }
 
@@ -515,19 +570,17 @@ bool ObjectAllocator::isPageEmpty(GenericObject* page) const
 {
     GenericObject* fL = this->FreeList_;
 
-    unsigned int unallocatedObjects = 0;
+    unsigned int freeBlocks = 0;
 
     while (fL)
     {
         unsigned char* cFL = TO_UCHAR_PTR(fL);
-        unsigned char* cP  = TO_UCHAR_PTR(page);
 
-        bool inPage = cFL > cP && cFL < (cP + stats.PageSize_);
-        if (inPage)
+        if (isInPage(page, cFL))
         {
-            ++unallocatedObjects;
+            ++freeBlocks;
 
-            if (unallocatedObjects >= config.ObjectsPerPage_)
+            if (freeBlocks >= config.ObjectsPerPage_)
                 return true;
         }
 
@@ -685,12 +738,10 @@ bool ObjectAllocator::checkAlignment(void* currentPage, const unsigned char* blo
     ptrdiff_t blockToPage = 0;
     ptrdiff_t offset = 0;
 
-    if (config.Alignment_ && config.Alignment_ != 1)
+    if (config.Alignment_ > 1)
     {
         blockToPage = block - (CP);
-        offset = blockToPage - PTR_SIZE;
-
-        return (static_cast<unsigned int>(offset) % config.Alignment_ == 0);
+        return (static_cast<size_t>(blockToPage) % config.Alignment_ == 0);
     }
 
     block -= static_cast<size_t>(config.PadBytes_);

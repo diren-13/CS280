@@ -64,6 +64,9 @@ ObjectAllocator::ObjectAllocator(size_t objectSize, const OAConfig& c)
     // Remove one interAlignment
     stats.PageSize_ -= config.InterAlignSize_;
 
+    if (config.UseCPPMemManager_)
+        return;
+
     createPage();
 }
 

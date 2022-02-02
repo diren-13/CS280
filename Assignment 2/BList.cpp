@@ -154,9 +154,19 @@ size_t BList<T, Size>::nodesize(void)
 /* Public Function Members                                                             */
 /*-------------------------------------------------------------------------------------*/
 template <typename T, unsigned int Size>
-void BList<T, Size>::push_back(const T&)
+void BList<T, Size>::push_back(const T& value)
 {
+    if (tail->count == Size)
+    {
+        allocateNodeAtBack();
+    }
 
+    // Front deals with tail node
+    tail->values[tail->count] = value;
+
+    // Increment stats
+    ++tail->count;
+    ++stats.ItemCount;
 }
 template <typename T, unsigned int Size>
 void BList<T, Size>::push_front(const T& value)
@@ -178,7 +188,7 @@ void BList<T, Size>::push_front(const T& value)
     ++stats.ItemCount;
 }
 template <typename T, unsigned int Size>
-void BList<T, Size>::insert(const T&)
+void BList<T, Size>::insert(const T& value)
 {
 
 }

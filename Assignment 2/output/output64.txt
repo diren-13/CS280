@@ -1,0 +1,86 @@
+==================== test1_1 ====================
+nodesize is 24
+Node   1 ( 1): 16 
+Node   2 ( 1): 15 
+Node   3 ( 1): 14 
+Node   4 ( 1): 13 
+Node   5 ( 1): 12 
+Node   6 ( 1): 11 
+Node   7 ( 1): 10 
+Node   8 ( 1): 9 
+Node   9 ( 1): 8 
+Node  10 ( 1): 7 
+Node  11 ( 1): 6 
+Node  12 ( 1): 5 
+Node  13 ( 1): 4 
+Node  14 ( 1): 3 
+Node  15 ( 1): 2 
+Node  16 ( 1): 1 
+
+List: 16 15 14 13 12 11 10 9 8 7 6 5 4 3 2 1 
+Asize: 1
+Items: 16
+Nodes: 16
+Average items per node: 1
+Node utilization: 100%
+
+
+==================== test1_2 ====================
+nodesize is 32
+Node   1 ( 2): 16 15 
+Node   2 ( 2): 14 13 
+Node   3 ( 2): 12 11 
+Node   4 ( 2): 10 9 
+Node   5 ( 2): 8 7 
+Node   6 ( 2): 6 5 
+Node   7 ( 2): 4 3 
+Node   8 ( 2): 2 1 
+
+List: 16 15 14 13 12 11 10 9 8 7 6 5 4 3 2 1 
+Asize: 2
+Items: 16
+Nodes: 8
+Average items per node: 2
+Node utilization: 100%
+
+
+==================== test1_4 ====================
+nodesize is 40
+Node   1 ( 4): 16 15 14 13 
+Node   2 ( 4): 12 11 10 9 
+Node   3 ( 4): 8 7 6 5 
+Node   4 ( 4): 4 3 2 1 
+
+List: 16 15 14 13 12 11 10 9 8 7 6 5 4 3 2 1 
+Asize: 4
+Items: 16
+Nodes: 4
+Average items per node: 4
+Node utilization: 100%
+
+
+==================== test1_8 ====================
+nodesize is 56
+Node   1 ( 8): 16 15 14 13 12 11 10 9 
+Node   2 ( 8): 8 7 6 5 4 3 2 1 
+
+List: 16 15 14 13 12 11 10 9 8 7 6 5 4 3 2 1 
+Asize: 8
+Items: 16
+Nodes: 2
+Average items per node: 8
+Node utilization: 100%
+
+
+==================== test1_16 ====================
+nodesize is 88
+Node   1 (16): 16 15 14 13 12 11 10 9 8 7 6 5 4 3 2 1 
+
+List: 16 15 14 13 12 11 10 9 8 7 6 5 4 3 2 1 
+Asize: 16
+Items: 16
+Nodes: 1
+Average items per node: 16
+Node utilization: 100%
+
+

@@ -224,19 +224,20 @@ void BList<T, Size>::insert(const T& value)
         }
 
         // Look for range where value belongs
-        if (!inRange(value, left, right))
-        {
-            current = current->next;
-            continue;
-        }
-        else if (inRange(value, right))
+        const bool InLeft  = inRange(value, left);
+        const bool InRight = inRange(value, right);
+
+        // If outside of left and right range, or only in right, move to next node.
+        if (!inRange(value, left, right) || InRight)
         {
             current = current->next;
             continue;
         }
 
-        const bool IsLeftFull = isNodeFull(left);
+        // Set the state of the left and right node
+        const bool IsLeftFull  = isNodeFull(left);
         const bool IsRightFull = isNodeFull(right);
+
         const State LRState = IsLeftFull ? (IsRightFull ? State::L_FULL_R_FULL : State::L_FULL_R_NFULL)
                                          : (IsRightFull ? State::L_NFULL_R_FULL : State::L_NFULL_R_NFULL);
 
@@ -245,6 +246,7 @@ void BList<T, Size>::insert(const T& value)
             // Both left and right are not full
             case State::L_NFULL_R_NFULL:
             {
+                // Prefer left
                 insertIntoNode(value, left);
                 return;
             }
@@ -259,7 +261,7 @@ void BList<T, Size>::insert(const T& value)
             // Left not full but right is full
             case State::L_NFULL_R_FULL:
             {
-                if (inRange(value, right))
+                if (InRight)
                 {
                     current = current->next;
                     continue;
@@ -273,7 +275,7 @@ void BList<T, Size>::insert(const T& value)
             // Left is full but right is not full
             case State::L_FULL_R_NFULL:
             {
-                if (inRange(value, left))
+                if (InLeft)
                 {
                     splitNode(left);
                     right = left->next;

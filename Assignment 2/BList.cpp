@@ -238,20 +238,20 @@ void BList<T, Size>::insert(const T& value)
         const bool IsLeftFull  = isNodeFull(left);
         const bool IsRightFull = isNodeFull(right);
 
-        const State LRState = IsLeftFull ? (IsRightFull ? State::L_FULL_R_FULL : State::L_FULL_R_NFULL)
-                                         : (IsRightFull ? State::L_NFULL_R_FULL : State::L_NFULL_R_NFULL);
+        const InsertionState LRState = IsLeftFull ? (IsRightFull ? InsertionState::L_FULL_R_FULL  : InsertionState::L_FULL_R_NFULL)
+                                                  : (IsRightFull ? InsertionState::L_NFULL_R_FULL : InsertionState::L_NFULL_R_NFULL);
 
         switch (LRState)
         {
             // Both left and right are not full
-            case State::L_NFULL_R_NFULL:
+            case InsertionState::L_NFULL_R_NFULL:
             {
                 // Prefer left
                 insertIntoNode(value, left);
                 return;
             }
             // Both left and right are full
-            case State::L_FULL_R_FULL:
+            case InsertionState::L_FULL_R_FULL:
             {
                 splitNode(left);
                 right = left->next;
@@ -259,7 +259,7 @@ void BList<T, Size>::insert(const T& value)
                 return;
             }
             // Left not full but right is full
-            case State::L_NFULL_R_FULL:
+            case InsertionState::L_NFULL_R_FULL:
             {
                 if (InRight)
                 {
@@ -270,10 +270,10 @@ void BList<T, Size>::insert(const T& value)
                 {
                     insertIntoNode(value, left);
                 }
-                break;
+                return;
             }
             // Left is full but right is not full
-            case State::L_FULL_R_NFULL:
+            case InsertionState::L_FULL_R_NFULL:
             {
                 if (InLeft)
                 {
@@ -374,9 +374,10 @@ void BList<T, Size>::splitNode(BNode* node)
     if (Size > 1)
     {
         const T* secondHalf = node->values + HalfSize;
-        memcpy(newNode->values, secondHalf, static_cast<size_t>(HalfSize));
+        memcpy(newNode->values, secondHalf, sizeof(T) * HalfSize);
         newNode->count = static_cast<int>(HalfSize);
     }
+    std::cout << std::endl;
 
     if (node != tail)
     {
@@ -401,15 +402,14 @@ void BList<T, Size>::insertIntoNode(const T& value, BNode* node)
     for (; insertIdx < node->count; ++insertIdx)
     {
         if (value < node->values[insertIdx])
+        {
+            node->values[insertIdx + 1] = node->values[insertIdx];
             break;
+        }
     }
 
-    if (Size > 1)
-    {
-        node->values[insertIdx + 1] = node->values[insertIdx];
-    }
     node->values[insertIdx] = value;
-    
+
     ++node->count;
     ++stats.ItemCount;
 }

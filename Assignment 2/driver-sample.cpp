@@ -342,7 +342,6 @@ void test3_2()
   Shuffle(ia, range);
   for (unsigned i = 0; i < size; i++) 
   {
-    // std::cout << "inserting: " << ia[i] << std::endl;
     bl.insert(ia[i]);
     // DumpList(bl, true);
     // DumpList(bl);
@@ -376,7 +375,7 @@ void test3_4()
   {
     bl.insert(ia[i]);
     //DumpList(bl, true);
-    //DumpList(bl);
+    // DumpList(bl);
     //std::cout << "==========================\n";
   }
   DumpList(bl, false);

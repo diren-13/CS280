@@ -329,7 +329,7 @@ private:
     /********************************************************************************//*!
     @brief      The state of the left and right nodes when using the insert method.
     *//*********************************************************************************/
-    enum class State
+    enum class InsertionState
     {
         L_NFULL_R_NFULL,    //!< both left and right are not full
         L_NFULL_R_FULL,     //!< left is not full but right is full

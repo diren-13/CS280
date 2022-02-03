@@ -157,14 +157,12 @@ size_t BList<T, Size>::nodesize(void)
 template <typename T, unsigned int Size>
 void BList<T, Size>::push_back(const T& value)
 {
-    // std::cout << "Pushing back" << std::endl;
-
     if (tail->count == Size)
     {
         allocateNodeAtBack();
     }
 
-    // Front deals with tail node
+    // Back deals with tail node
     tail->values[tail->count] = value;
 
     // Increment stats
@@ -174,8 +172,6 @@ void BList<T, Size>::push_back(const T& value)
 template <typename T, unsigned int Size>
 void BList<T, Size>::push_front(const T& value)
 {
-    // std::cout << "Pushing front" << std::endl;
-
     if (head->count == Size)
     {
         allocateNodeInFront();
@@ -195,11 +191,14 @@ void BList<T, Size>::push_front(const T& value)
 template <typename T, unsigned int Size>
 void BList<T, Size>::insert(const T& value)
 {
-    // If value smaller than head
-    if (value < head->values[0])
+    // If no values initialised, just insert.
+    if (stats.ItemCount == 0)
     {
-        splitNode(head);
-        insertAfterSplit(value, head, head->next);
+        head->values[0] = value;
+
+        ++head->count;
+        ++stats.ItemCount;
+
         return;
     }
 
@@ -209,24 +208,22 @@ void BList<T, Size>::insert(const T& value)
     {
         BNode* left = current;
         BNode* right = current->next;
+
+        // If head
+        if (left == head && value < head->values[0])
+        {
+            insertAtHead(value);
+            return;
+        }
         
         // If tail
-        if (!right)
+        if (left == tail)
         {
-            // At the tail. Check if tail has space.
-            if (!isNodeFull(left))
-            {
-                insertIntoNode(value, left);
-                return;
-            }
-
-            // Otherwise, split tail node.
-            splitNode(left);
-            right = left->next;
-            insertAfterSplit(value, left, right);
+            insertAtTail(value);
             return;
         }
 
+        // Look for range where value belongs
         if (!inRange(value, left, right))
         {
             current = current->next;
@@ -400,6 +397,26 @@ void BList<T, Size>::insertIntoNode(const T& value, BNode* node)
     ++stats.ItemCount;
 }
 template <typename T, unsigned int Size>
+void BList<T, Size>::insertAtHead(const T& value)
+{
+    splitNode(head);
+    insertAfterSplit(value, head, head->next);
+}
+template <typename T, unsigned int Size>
+void BList<T, Size>::insertAtTail(const T& value)
+{
+    // Check if tail has space.
+    if (!isNodeFull(tail))
+    {
+        insertIntoNode(value, tail);
+        return;
+    }
+
+    // Otherwise, split tail node.
+    splitNode(tail);
+    insertAfterSplit(value, tail->prev, tail);
+}
+template <typename T, unsigned int Size>
 void BList<T, Size>::insertAfterSplit(const T& value, BNode* left, BNode* right)
 {
     // Edge case for size of 1
@@ -419,6 +436,7 @@ void BList<T, Size>::insertAfterSplit(const T& value, BNode* left, BNode* right)
         {
             right->values[0] = value;
         }
+
         ++right->count;
         ++stats.ItemCount;
     }

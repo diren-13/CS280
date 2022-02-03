@@ -229,6 +229,11 @@ void BList<T, Size>::insert(const T& value)
             current = current->next;
             continue;
         }
+        else if (inRange(value, right))
+        {
+            current = current->next;
+            continue;
+        }
 
         const bool IsLeftFull = isNodeFull(left);
         const bool IsRightFull = isNodeFull(right);
@@ -257,6 +262,7 @@ void BList<T, Size>::insert(const T& value)
                 if (inRange(value, right))
                 {
                     current = current->next;
+                    continue;
                 }
                 else
                 {
@@ -267,7 +273,16 @@ void BList<T, Size>::insert(const T& value)
             // Left is full but right is not full
             case State::L_FULL_R_NFULL:
             {
-                insertIntoNode(value, right);
+                if (inRange(value, left))
+                {
+                    splitNode(left);
+                    right = left->next;
+                    insertAfterSplit(value, left, right);
+                }
+                else
+                {
+                    insertIntoNode(value, right);
+                }
                 return;
             }
             default: break;
@@ -345,7 +360,7 @@ void BList<T, Size>::allocateNodeAtBack()
 template <typename T, unsigned int Size>
 void BList<T, Size>::splitNode(BNode* node)
 {
-    const unsigned int HalfSize = (Size > 1) ? Size << 1 : 1;
+    const unsigned int HalfSize = (Size > 1) ? Size >> 1 : 1;
 
     BNode* newNode = new BNode;
 
@@ -399,8 +414,15 @@ void BList<T, Size>::insertIntoNode(const T& value, BNode* node)
 template <typename T, unsigned int Size>
 void BList<T, Size>::insertAtHead(const T& value)
 {
-    splitNode(head);
-    insertAfterSplit(value, head, head->next);
+    if (head->count == static_cast<int>(Size))
+    {
+        splitNode(head);
+        insertAfterSplit(value, head, head->next);
+    }
+    else
+    {
+        insertIntoNode(value, head);
+    }
 }
 template <typename T, unsigned int Size>
 void BList<T, Size>::insertAtTail(const T& value)

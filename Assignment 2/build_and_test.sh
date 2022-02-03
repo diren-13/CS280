@@ -7,4 +7,4 @@ g++ -std=c++14 -Werror -Wall -Wextra -Wconversion -pedantic -Wno-deprecated -g d
 echo "Running \"default\" Test Cases..."
 printf '1\n' | ./$output > ./output/output64.txt
 printf '2\n' | ./$output >> ./output/output64.txt
-
+printf '3\n' | ./$output >> ./output/output64.txt

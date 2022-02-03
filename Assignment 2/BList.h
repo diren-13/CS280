@@ -169,7 +169,7 @@ public:
         BNode() 
         : next  (0)
         , prev  (0)
-        , count (0) 
+        , count (0)
         {}
     };
 
@@ -324,6 +324,20 @@ public:
     
 private:
     /*---------------------------------------------------------------------------------*/
+    /* Type Definitions                                                                */
+    /*---------------------------------------------------------------------------------*/
+    /********************************************************************************//*!
+    @brief      The state of the left and right nodes when using the insert method.
+    *//*********************************************************************************/
+    enum class State
+    {
+        L_NFULL_R_NFULL,    //!< both left and right are not full
+        L_NFULL_R_FULL,     //!< left is not full but right is full
+        L_FULL_R_NFULL,     //!< left is full but right is not full 
+        L_FULL_R_FULL,      //!< both left and right are full
+    };
+
+    /*---------------------------------------------------------------------------------*/
     /* Data Memebrs                                                                    */
     /*---------------------------------------------------------------------------------*/
     BNode*      head;  //!< points to the first node
@@ -336,6 +350,17 @@ private:
     /*---------------------------------------------------------------------------------*/
     void allocateNodeInFront();
     void allocateNodeAtBack();
+
+    void splitNode(BNode* node);
+
+    void insertIntoNode(const T& value, BNode* node);
+    void insertAfterSplit(const T& value, BNode* left, BNode* right);
+
+    bool isNodeFull(const BNode* node) const;
+
+    bool inRange(const T& value, const BNode* node) const;
+    bool inRange(const T& value, const BNode* left, const BNode* right) const;
+    
 };
 
 #include "BList.cpp"

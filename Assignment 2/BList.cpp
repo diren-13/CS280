@@ -327,9 +327,24 @@ void BList<T, Size>::remove_by_value(const T&)
 
 }
 template <typename T, unsigned int Size>
-int BList<T, Size>::find(const T&) const
+int BList<T, Size>::find(const T& value) const
 {
-    return 0;
+    int valuePos = -1;
+
+    BNode* node = head;
+    while(node)
+    {
+        for (int i = 0; i < node->count; ++i)
+        {
+            ++valuePos;
+            if (node->values[i] == value)
+                return valuePos;
+        }
+
+        node = node->next;
+    }
+
+    return -1;
 }
 template <typename T, unsigned int Size>
 void BList<T, Size>::clear()

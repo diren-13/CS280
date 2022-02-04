@@ -322,19 +322,19 @@ void BList<T, Size>::remove(int index)
     if (index >= stats.ItemCount)
         throw BListException{BListException::E_BAD_INDEX, "Index out of range"};
 
-    int counter = -1;
+    int counter = 0;
 
     BNode* node = head;
     while(node)
     {
         for (int i = 0; i < node->count; ++i)
         {
-            ++counter;
             if (counter == index)
             {
                 removeElement(i, node);
                 return;
             }
+            ++counter;
         }
         node = node->next;
 	}
@@ -557,7 +557,7 @@ void BList<T, Size>::insertAfterSplit(const T& value, BNode* left, BNode* right)
 template <typename T, unsigned int Size>
 void BList<T, Size>::removeElement(int pos, BNode* node)
 {
-    --node->count;
+    const int PrevCount = node->count--;
     --stats.ItemCount;
 
     if (node->count == 0)
@@ -566,7 +566,7 @@ void BList<T, Size>::removeElement(int pos, BNode* node)
         return;
     }
 
-    for (int i = pos; i < (node->count - 1); ++i)
+    for (int i = pos; i < PrevCount; ++i)
     {
         node->values[i] = node->values[i + 1];
     }

@@ -814,23 +814,23 @@ Node   4 ( 4): 89 16 43 28
 Removing from index 15
 List: 56 59 87 79 97 96 29 41 35 52 50 75 89 16 43 
 Removing from index 13
-List: 56 59 87 79 97 96 29 41 35 52 50 75 89 16 
+List: 56 59 87 79 97 96 29 41 35 52 50 75 89 43 
 Removing from index 11
-List: 56 59 87 79 97 96 29 41 35 52 50 89 16 
+List: 56 59 87 79 97 96 29 41 35 52 50 89 43 
 Removing from index 9
-List: 56 59 87 79 97 96 29 41 35 52 89 16 
+List: 56 59 87 79 97 96 29 41 35 50 89 43 
 Removing from index 7
-List: 56 59 87 79 97 96 29 35 52 89 16 
+List: 56 59 87 79 97 96 29 35 50 89 43 
 Removing from index 5
-List: 56 59 87 79 97 96 35 52 89 16 
+List: 56 59 87 79 97 29 35 50 89 43 
 Removing from index 3
-List: 56 59 87 97 96 35 52 89 16 
+List: 56 59 87 97 29 35 50 89 43 
 Removing from index 1
-List: 56 59 97 96 35 52 89 16 
-Node   1 ( 2): 56 59 
-Node   2 ( 2): 97 96 
-Node   3 ( 2): 35 52 
-Node   4 ( 2): 89 16 
+List: 56 87 97 29 35 50 89 43 
+Node   1 ( 2): 56 87 
+Node   2 ( 2): 97 29 
+Node   3 ( 2): 35 50 
+Node   4 ( 2): 89 43 
 
 ==================== test7_8 ====================
 nodesize is 56
@@ -840,19 +840,19 @@ Node   2 ( 8): 35 52 50 75 89 16 43 28
 Removing from index 15
 List: 56 59 87 79 97 96 29 41 35 52 50 75 89 16 43 
 Removing from index 13
-List: 56 59 87 79 97 96 29 41 35 52 50 75 89 16 
+List: 56 59 87 79 97 96 29 41 35 52 50 75 89 43 
 Removing from index 11
-List: 56 59 87 79 97 96 29 41 35 52 50 89 89 
+List: 56 59 87 79 97 96 29 41 35 52 50 89 43 
 Removing from index 9
-List: 56 59 87 79 97 96 29 41 35 50 89 89 
+List: 56 59 87 79 97 96 29 41 35 50 89 43 
 Removing from index 7
-List: 56 59 87 79 97 96 29 35 50 89 89 
+List: 56 59 87 79 97 96 29 35 50 89 43 
 Removing from index 5
-List: 56 59 87 79 97 96 35 50 89 89 
+List: 56 59 87 79 97 29 35 50 89 43 
 Removing from index 3
-List: 56 59 87 97 97 35 50 89 89 
+List: 56 59 87 97 29 35 50 89 43 
 Removing from index 1
-List: 56 87 97 97 35 50 89 89 
-Node   1 ( 4): 56 87 97 97 
-Node   2 ( 4): 35 50 89 89 
+List: 56 87 97 29 35 50 89 43 
+Node   1 ( 4): 56 87 97 29 
+Node   2 ( 4): 35 50 89 43 
 

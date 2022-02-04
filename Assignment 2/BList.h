@@ -3,8 +3,7 @@
  \author  Diren D Bharwani, diren.dbharwani, 390002520
  \par     email: diren.dbharwani\@digipen.edu
  \date    Feb 2, 2022
- \brief   Contains the interface for the BList class, along with all its
-          helper objects.
+ \brief   Contains the interface for the BList class, along with all its helper objects.
  
  Copyright (C) 2022 DigiPen Institute of Technology.
  Reproduction or disclosure of this file or its contents without the prior written 
@@ -348,25 +347,108 @@ private:
     /*---------------------------------------------------------------------------------*/
     /* Function Memebrs                                                                */
     /*---------------------------------------------------------------------------------*/
-    void allocateNodeInFront();
-    void allocateNodeAtBack();
-
-    void splitNode(BNode* node);
-
-    void removeNode(BNode* node);
-
-    void insertIntoNode(const T& value, BNode* node);
-    void insertAtHead(const T& value);
-    void insertAtTail(const T& value);
-    void insertAfterSplit(const T& value, BNode* left, BNode* right);
-
-    void removeElement(int pos, BNode* node);
-
-    bool isNodeFull(const BNode* node) const;
-
-    bool inRange(const T& value, const BNode* node) const;
-    bool inRange(const T& value, const BNode* left, const BNode* right) const;
+    /********************************************************************************//*!
+    @brief      Allocates an empty node at the front of the BList.
     
+    @returns    The allocated node. Actually the head.
+    *//*********************************************************************************/
+    BNode* allocateNodeInFront();
+    /********************************************************************************//*!
+    @brief      Allocates an empty node at the back of the BList.
+    
+    @returns    The allocated node. Actually the tail.
+    *//*********************************************************************************/
+    BNode* allocateNodeAtBack();
+    /********************************************************************************//*!
+    @brief      Splits a node into two.
+    
+    @param      node
+        The node to split.
+    *//*********************************************************************************/
+    void splitNode(BNode* node);
+    /********************************************************************************//*!
+    @brief      Removes a node from the BList.
+    
+    @param      node
+        The node to remove.
+    *//*********************************************************************************/
+    void removeNode(BNode* node);
+    /********************************************************************************//*!
+    @brief      Inserts a value into a node.
+    
+    @param      value
+        The value to insert.
+    @param      node
+        The node to insert the value in.
+    *//*********************************************************************************/
+    void insertIntoNode(const T& value, BNode* node);
+    /********************************************************************************//*!
+    @brief      Inserts a value into the head node. If the head node is full, it will be
+                split.
+    
+    @param      value
+        The value to insert.
+    *//*********************************************************************************/
+    void insertAtHead(const T& value);
+    /********************************************************************************//*!
+    @brief      Inserts a value into the tail node. If the head node is full, it will be
+                split.
+    
+    @param      value
+        The value to insert.
+    *//*********************************************************************************/
+    void insertAtTail(const T& value);
+    /********************************************************************************//*!
+    @brief      Inserts a value into a node right after it has been split.
+    
+    @param      value
+        The value to insert.
+    @param      left
+        The node which was split.
+    @param      right
+        The new node.
+    *//*********************************************************************************/
+    void insertAfterSplit(const T& value, BNode* left, BNode* right);
+    /********************************************************************************//*!
+    @brief      Removes an element from a node.
+    
+    @param      pos
+        The position in the node to remove the element at.
+    @param      node
+        The node to remove the element at.
+    *//*********************************************************************************/
+    void removeElement(int pos, BNode* node);
+    /********************************************************************************//*!
+    @brief      Checks if a node is full.
+    
+    @param      node
+        The node to check.
+    *//*********************************************************************************/
+    bool isNodeFull(const BNode* node) const;
+    /********************************************************************************//*!
+    @brief      Checks if a value is in the range of the node's elements.
+    
+    @param      value
+        The value to check.
+    @param      node
+        The node to check in.
+
+    @returns    True if the value is in the range.
+    *//*********************************************************************************/
+    bool inRange(const T& value, const BNode* node) const;
+    /********************************************************************************//*!
+    @brief      Checks if a value is in the range of two node's elements.
+    
+    @param      value
+        The value to check.
+    @param      left
+        The start node to check in.
+    @param      right
+        The end node to check in.
+
+    @returns    True if the value is in the range.
+    *//*********************************************************************************/
+    bool inRange(const T& value, const BNode* left, const BNode* right) const;
 };
 
 #include "BList.cpp"

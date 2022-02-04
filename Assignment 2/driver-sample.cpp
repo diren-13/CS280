@@ -1693,71 +1693,61 @@ int main(int argc, char **argv)
 
   switch (test)
   {
-    case 1:
+    case 0:
       test1_1();
       test1_2();
       test1_4();
       test1_8();
       test1_16();
-      break;
-    case 2: 
+
       test2_1();
       test2_2();
       test2_4();
       test2_8();
-      test2_16();
-      break;
-    case 3: 
+      test2_16(); 
+
       test3_1();
       test3_2();
       test3_4();
       test3_8();
       test3_16();
-      break;
-    case 4: 
+
       test4_1();
       test4_2();
       test4_4();
       test4_8();
       test4_16();
-     
+      
       test5_1();
       test5_2();
       test5_4();
       test5_8();
       test5_16();
-       
+
       test6_16();
       test6_64();
       test6_512();
-      break;
-    case 7: 
+
       test7_1();
       test7_2();
       test7_4();
       test7_8();
-      break;
-    case 8: 
+
       test8_1();
       test8_2();
       test8_4();
       test8_8();
-      break;
-    case 9: 
+
       test9_1();
       test9_4();
-      break;
-    case 10: 
+
       test10_1();
       test10_4();
-      break;
-    case 11: 
+
       test11_8();
-      break;
-    case 12: 
+ 
       test12_8();
-      break;
-    case 13: 
+
       testA();
       testB();
       testC();

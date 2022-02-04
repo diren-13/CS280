@@ -8,3 +8,4 @@ echo "Running \"default\" Test Cases..."
 printf '1\n' | ./$output > ./output/output64.txt
 printf '2\n' | ./$output >> ./output/output64.txt
 printf '3\n' | ./$output >> ./output/output64.txt
+printf '4\n' | ./$output >> ./output/output64.txt

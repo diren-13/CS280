@@ -117,16 +117,50 @@ BList<T, Size>& BList<T, Size>::operator=(const BList<T, Size>& rhs)
     return *this;
 }
 template <typename T, unsigned int Size>
-T& BList<T, Size>::operator[](int)
+T& BList<T, Size>::operator[](int index)
 {
-    static T t;
-    return t;
+    if (index < stats.ItemCount)
+    {
+        int counter = -1;
+
+        BNode* node = head;
+        while(node)
+        {
+            for (int i = 0; i < node->count; ++i)
+            {
+                ++counter;
+                if (counter == index)
+                    return node->values[i];
+            }
+
+            node = node->next;
+        }
+    }
+
+    throw BListException{BListException::E_BAD_INDEX, "Index out of range."};
 }
 template <typename T, unsigned int Size>
-const T& BList<T, Size>::operator[](int) const
+const T& BList<T, Size>::operator[](int index) const
 {
-    static T t;
-    return t;
+    if (index < stats.ItemCount)
+    {
+        int counter = -1;
+
+        BNode* node = head;
+        while(node)
+        {
+            for (int i = 0; i < node->count; ++i)
+            {
+                ++counter;
+                if (counter == index)
+                    return node->values[i];
+            }
+
+            node = node->next;
+        }
+    }
+
+    throw BListException{BListException::E_BAD_INDEX, "Index out of range."};
 }
 /*-------------------------------------------------------------------------------------*/
 /* Getter Functions                                                                    */
@@ -202,12 +236,12 @@ void BList<T, Size>::insert(const T& value)
         return;
     }
 
-    BNode* current = head;
+    BNode* node = head;
 
-    while (current)
+    while (node)
     {
-        BNode* left = current;
-        BNode* right = current->next;
+        BNode* left = node;
+        BNode* right = node->next;
 
         // If head
         if (left == head && value < *(left->values))
@@ -227,7 +261,7 @@ void BList<T, Size>::insert(const T& value)
         // If outside of left and right range, or is in right, move to next node.
         if (!inRange(value, left, right) || inRange(value, right))
         {
-            current = current->next;
+            node = node->next;
             continue;
         }
 
@@ -279,7 +313,7 @@ void BList<T, Size>::insert(const T& value)
             default: break;
         }
 
-        current = current->next;
+        node = node->next;
     }
 }
 template <typename T, unsigned int Size>

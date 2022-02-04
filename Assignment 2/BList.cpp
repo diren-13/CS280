@@ -224,11 +224,8 @@ void BList<T, Size>::insert(const T& value)
         }
 
         // Look for range where value belongs
-        const bool InLeft  = inRange(value, left);
-        const bool InRight = inRange(value, right);
-
-        // If outside of left and right range, or only in right, move to next node.
-        if (!inRange(value, left, right) || InRight)
+        // If outside of left and right range, or is in right, move to next node.
+        if (!inRange(value, left, right) || inRange(value, right))
         {
             current = current->next;
             continue;
@@ -261,21 +258,13 @@ void BList<T, Size>::insert(const T& value)
             // Left not full but right is full
             case InsertionState::L_NFULL_R_FULL:
             {
-                if (InRight)
-                {
-                    current = current->next;
-                    continue;
-                }
-                else
-                {
-                    insertIntoNode(value, left);
-                }
+                insertIntoNode(value, left);
                 return;
             }
             // Left is full but right is not full
             case InsertionState::L_FULL_R_NFULL:
             {
-                if (InLeft)
+                if (inRange(value, left))
                 {
                     splitNode(left);
                     right = left->next;

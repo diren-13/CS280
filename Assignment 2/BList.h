@@ -353,10 +353,14 @@ private:
 
     void splitNode(BNode* node);
 
+    void removeNode(BNode* node);
+
     void insertIntoNode(const T& value, BNode* node);
     void insertAtHead(const T& value);
     void insertAtTail(const T& value);
     void insertAfterSplit(const T& value, BNode* left, BNode* right);
+
+    void removeElement(int pos, BNode* node);
 
     bool isNodeFull(const BNode* node) const;
 

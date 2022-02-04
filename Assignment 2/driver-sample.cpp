@@ -847,7 +847,7 @@ void test5_16()
 // insert/find
 void test6_16()
 {
-  std::cout << "==================== tes6_16 ====================\n";
+  std::cout << "==================== test6_16 ====================\n";
   const unsigned asize = 16;
 
   BList<int, asize> bl;
@@ -885,7 +885,7 @@ void test6_16()
 
 void test6_64()
 {
-  std::cout << "==================== test5_64 ====================\n";
+  std::cout << "==================== test6_64 ====================\n";
   const unsigned asize = 64;
 
   BList<int, asize> bl;
@@ -923,7 +923,7 @@ void test6_64()
 
 void test6_512()
 {
-  std::cout << "==================== test5_512 ====================\n";
+  std::cout << "==================== test6_512 ====================\n";
   const unsigned asize = 512;
 
   BList<int, asize> bl;

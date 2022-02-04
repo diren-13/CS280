@@ -317,9 +317,27 @@ void BList<T, Size>::insert(const T& value)
     }
 }
 template <typename T, unsigned int Size>
-void BList<T, Size>::remove(int)
+void BList<T, Size>::remove(int index)
 {
+    if (index >= stats.ItemCount)
+        throw BListException{BListException::E_BAD_INDEX, "Index out of range"};
 
+    int counter = -1;
+
+    BNode* node = head;
+    while(node)
+    {
+        for (int i = 0; i < node->count; ++i)
+        {
+            ++counter;
+            if (counter == index)
+            {
+                removeElement(i, node);
+                return;
+            }
+        }
+        node = node->next;
+	}
 }
 template <typename T, unsigned int Size>
 void BList<T, Size>::remove_by_value(const T&)
@@ -433,6 +451,35 @@ void BList<T, Size>::splitNode(BNode* node)
     ++stats.NodeCount;
 }
 template <typename T, unsigned int Size>
+void BList<T, Size>::removeNode(BNode* node)
+{
+    BNode* next = (node == tail ? nullptr : node->next);
+    BNode* prev = (node == head ? nullptr : node->prev);
+
+    if (next)
+    {
+        next->prev = prev;
+    }
+
+    if (prev)
+    {
+        prev->next = next;
+    }
+
+    if (node == head)
+    {
+        head = next;
+    }
+
+    if (node == tail)
+    {
+        tail = prev;
+    }
+
+    delete node;
+    --stats.NodeCount;
+}
+template <typename T, unsigned int Size>
 void BList<T, Size>::insertIntoNode(const T& value, BNode* node)
 {
     int insertIdx = 0;
@@ -505,6 +552,23 @@ void BList<T, Size>::insertAfterSplit(const T& value, BNode* left, BNode* right)
 
         ++right->count;
         ++stats.ItemCount;
+    }
+}
+template <typename T, unsigned int Size>
+void BList<T, Size>::removeElement(int pos, BNode* node)
+{
+    --node->count;
+    --stats.ItemCount;
+
+    if (node->count == 0)
+    {
+        removeNode(node);
+        return;
+    }
+
+    for (int i = pos; i < (node->count - 1); ++i)
+    {
+        node->values[i] = node->values[i + 1];
     }
 }
 template <typename T, unsigned int Size>

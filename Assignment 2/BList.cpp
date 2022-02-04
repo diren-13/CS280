@@ -210,7 +210,7 @@ void BList<T, Size>::insert(const T& value)
         BNode* right = current->next;
 
         // If head
-        if (left == head && value < head->values[0])
+        if (left == head && value < *(left->values))
         {
             insertAtHead(value);
             return;
@@ -377,7 +377,6 @@ void BList<T, Size>::splitNode(BNode* node)
         memcpy(newNode->values, secondHalf, sizeof(T) * HalfSize);
         newNode->count = static_cast<int>(HalfSize);
     }
-    std::cout << std::endl;
 
     if (node != tail)
     {
@@ -403,7 +402,11 @@ void BList<T, Size>::insertIntoNode(const T& value, BNode* node)
     {
         if (value < node->values[insertIdx])
         {
-            node->values[insertIdx + 1] = node->values[insertIdx];
+            for (int j = node->count; j > insertIdx; --j)
+            {
+                node->values[j] = node->values[j-1];
+            }
+            
             break;
         }
     }
@@ -416,7 +419,7 @@ void BList<T, Size>::insertIntoNode(const T& value, BNode* node)
 template <typename T, unsigned int Size>
 void BList<T, Size>::insertAtHead(const T& value)
 {
-    if (head->count == static_cast<int>(Size))
+    if (isNodeFull(head))
     {
         splitNode(head);
         insertAfterSplit(value, head, head->next);
@@ -429,16 +432,15 @@ void BList<T, Size>::insertAtHead(const T& value)
 template <typename T, unsigned int Size>
 void BList<T, Size>::insertAtTail(const T& value)
 {
-    // Check if tail has space.
-    if (!isNodeFull(tail))
+    if (isNodeFull(tail))
+    {
+        splitNode(tail);
+        insertAfterSplit(value, tail->prev, tail);
+    }
+    else
     {
         insertIntoNode(value, tail);
-        return;
     }
-
-    // Otherwise, split tail node.
-    splitNode(tail);
-    insertAfterSplit(value, tail->prev, tail);
 }
 template <typename T, unsigned int Size>
 void BList<T, Size>::insertAfterSplit(const T& value, BNode* left, BNode* right)
@@ -450,15 +452,17 @@ void BList<T, Size>::insertAfterSplit(const T& value, BNode* left, BNode* right)
     }
     else
     {
-        if (value < left->values[0])
+        T& lValue = *(left->values);
+        T& rValue = *(right->values);
+        if (value < lValue)
         {
             // Swap values
-            right->values[0] = left->values[0];
-            left->values[0] = value;
+            rValue = lValue;
+            lValue = value;
         }
         else
         {
-            right->values[0] = value;
+            rValue = value;
         }
 
         ++right->count;

@@ -439,7 +439,7 @@ void BList<T, Size>::remove(int index)
             ++counter;
         }
         node = node->next;
-	}
+    }
 }
 /************************************************************************************//*!
  @brief     Removes an element from the BList based on its value.

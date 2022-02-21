@@ -25,8 +25,9 @@ void Swap(T& lhs, T& rhs)
 }
 
 template <typename T>
-void BubbleSort(T* arr, int n)
+void BubbleSort(T* arr, int start, int end)
 {
+    int n = end - start;
     for (int i = 0; i < n - 1; ++i)
     {
         for (int j = 0; j < n - i - 1; ++j)
@@ -40,8 +41,9 @@ void BubbleSort(T* arr, int n)
 }
 
 template <typename T>
-void BubbleSortAdaptive(T* arr, int n)
+void BubbleSortAdaptive(T* arr, int start, int end)
 {
+    int n = end - start;
     for (int i = 0; i < n - 1; ++i)
     {
         bool swapped = false;
@@ -60,8 +62,9 @@ void BubbleSortAdaptive(T* arr, int n)
 }
 
 template <typename T>
-void SelectionSort(T* arr, int n)
+void SelectionSort(T* arr, int start, int end)
 {
+    int n = end - start;
     for (int i = 0; i < n - 1; ++i)
     {
         int min = i;
@@ -78,8 +81,9 @@ void SelectionSort(T* arr, int n)
 }
 
 template <typename T>
-void InsertionSort(T* arr, int n)
+void InsertionSort(T* arr, int start, int end)
 {
+    int n = end - start;
     for (int i = 1; i < n; ++i)
     {
         T key = arr[i];
@@ -159,7 +163,25 @@ void MergeSort(T* arr, int left, int right)
     }
 }
 
-void RunSortingAlgorithm(const std::string& algoName, void (*sort)(int*, int))
+template <typename T>
+void QuickSort(T* arr, int start, int end)
+{
+    if (start < end)
+    {
+        T ref = arr[end];
+        int j = start;
+        for (auto i = start; i < end; ++i)
+        {
+            if (arr[i] <= ref)
+                Swap(arr[i], arr[j++]);
+        }
+        Swap(arr[j], arr[end]); 
+        QuickSort(arr, start, j-1);
+        QuickSort(arr, j+1, end);
+    }
+}
+
+void RunSortingAlgorithm(const std::string& algoName, void (*sort)(int*, int, int))
 {
     static int size = 50000;
 
@@ -167,7 +189,7 @@ void RunSortingAlgorithm(const std::string& algoName, void (*sort)(int*, int))
     memcpy(test, numbers, sizeof(int) * size);
 
     auto before = std::chrono::high_resolution_clock::now();
-    sort(test, size);
+    sort(test, 0, size-1);
     auto after = std::chrono::high_resolution_clock::now();
 
     delete[] test;
@@ -190,18 +212,10 @@ int main()
     std::chrono::duration<double, std::milli> stdTime = afterSTD - beforeSTD;
     std::cout << "std::sort" << ": \n" << stdTime.count() << " ms" << std::endl;
 
-    RunSortingAlgorithm("BubbleSort", BubbleSort<int>);
-    RunSortingAlgorithm("BubbleSortAdaptive", BubbleSortAdaptive<int>);
-    RunSortingAlgorithm("SelectionSort", SelectionSort<int>);
-    RunSortingAlgorithm("InsertionSort", InsertionSort<int>);
-    
-    // Recursive Sorting
-    int* mergeTest = new int[size];
-    memcpy(mergeTest, numbers, sizeof(int) * size);
-    auto beforeMS = std::chrono::high_resolution_clock::now();
-    MergeSort(mergeTest, 0, size-1);
-    auto afterMS = std::chrono::high_resolution_clock::now();
-    delete[] mergeTest;
-    std::chrono::duration<double, std::milli> msTime = afterMS - beforeMS;
-    std::cout << "MergeSort" << ": \n" << msTime.count() << " ms" << std::endl;
+    RunSortingAlgorithm("BubbleSort"        , BubbleSort<int>           );
+    RunSortingAlgorithm("BubbleSortAdaptive", BubbleSortAdaptive<int>   );
+    RunSortingAlgorithm("SelectionSort"     , SelectionSort<int>        );
+    RunSortingAlgorithm("InsertionSort"     , InsertionSort<int>        );
+    RunSortingAlgorithm("MergeSort"         , MergeSort<int>            );
+    RunSortingAlgorithm("QuickSort"         , QuickSort<int>            );
 }

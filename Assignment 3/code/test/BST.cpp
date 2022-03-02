@@ -201,16 +201,18 @@ bool BST::find(BSTNode* node, int value) const
     return true;
 }
 
-const BSTNode* BST::findNode(BSTNode* node, int value) const
+const BSTNode* BST::findNode(BSTNode* node, int index) const
 {
     if (node == nullptr)
         return nullptr;
 
-    if (value < node->Left->Count)
-        return findNode(node->Left, value);
+    const int L = node->Left ? node->Left->Count : 0;
 
-    if (value > node->Left->Count)
-        return findNode(node->Right, value);
+    if (index < L)
+        return findNode(node->Left, index);
+
+    if (index > L)
+        return findNode(node->Right, index - L - 1);
 
     return node;
 }

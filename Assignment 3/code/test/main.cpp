@@ -12,10 +12,10 @@
 
 int main()
 {
-    int bstNumbers[7] = {4,2,1,3,6,5,7};
+    int bstNumbers[8] = {4,2,1,3,6,5,7,0};
 
     BST tree;
-    for (int i = 0; i < 7; ++i)
+    for (int i = 0; i < 8; ++i)
     {
         std::cout << "Inserting: " << bstNumbers[i] << std::endl;
         tree.Insert(bstNumbers[i]);

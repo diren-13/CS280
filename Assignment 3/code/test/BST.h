@@ -28,6 +28,9 @@ class BST
 {
 public:
     BST();
+    ~BST();
+
+    const BSTNode*  operator[]      (int index)                 const;
 
     const BSTNode&  GetRoot         ()                          const;
     int             Height          ()                          const;
@@ -44,9 +47,11 @@ public:
 
 protected:
     BSTNode*            newNode         (int value);
+    void                removeNode      (BSTNode* node);
     virtual BSTNode*    insert          (BSTNode* node, int value);
     virtual BSTNode*    remove          (BSTNode* node, int value);
     bool                find            (BSTNode* node, int value)  const;
+    const BSTNode*      findNode        (BSTNode* node, int value)  const;
     BSTNode*            findSuccessor   (BSTNode* node);
     void                preOrder        (BSTNode* node)             const;
     void                inOrder         (BSTNode* node)             const;

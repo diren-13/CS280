@@ -36,6 +36,16 @@ BST::BST()
 : root { nullptr }
 {}
 
+BST::~BST()
+{
+    removeNode(root);
+}
+
+const BSTNode* BST::operator[](int index) const
+{
+    return findNode(root, index);
+}
+
 const BSTNode& BST::GetRoot() const
 {
     return *root;
@@ -90,6 +100,17 @@ BSTNode* BST::newNode(int value)
 {
     BSTNode* node = new BSTNode{value};
     return node;
+}
+
+void BST::removeNode(BSTNode* node)
+{
+    if (node == nullptr)
+        return;
+
+    removeNode(node->Left);
+    removeNode(node->Right);
+
+    delete node;
 }
 
 BSTNode* BST::insert(BSTNode* node, int value)
@@ -178,6 +199,20 @@ bool BST::find(BSTNode* node, int value) const
         return find(node->Right, value);
 
     return true;
+}
+
+const BSTNode* BST::findNode(BSTNode* node, int value) const
+{
+    if (node == nullptr)
+        return nullptr;
+
+    if (value < node->Left->Count)
+        return findNode(node->Left, value);
+
+    if (value > node->Left->Count)
+        return findNode(node->Right, value);
+
+    return node;
 }
 
 BSTNode* BST::findSuccessor(BSTNode* node)

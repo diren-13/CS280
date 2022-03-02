@@ -22,6 +22,21 @@ int main()
     }
 
     tree.PreOrder();
+    std::cout << std::endl;
+
+    std::cout << tree[3]->Value << std::endl;
+    std::cout << tree[7]->Value << std::endl;
+
+    const BSTNode* node = tree[9];
+
+    if (node)
+    {
+        std::cout << node->Value << std::endl;
+    }
+    else
+    {
+        std::cout << "Not found!" << std::endl;
+    }
 
     // std::cout << "InOrder: ";
     // tree.InOrder();
@@ -31,13 +46,10 @@ int main()
     // tree.PostOrder();
     // std::cout << std::endl;
 
-    for (int i = 0; i < 7; ++i)
-    {
-        std::cout << "Removing: " << bstNumbers[i] << std::endl;
-        tree.Remove(bstNumbers[i]);
-        tree.PreOrder();
-        std::cout << std::endl;
-    }
+    // for (int i = 0; i < 7; ++i)
+    // {
+    //     tree.Remove(bstNumbers[i]);
+    // }
 
     // int avlNumbers[7] = {6,4,5,7,2,1,3};
 

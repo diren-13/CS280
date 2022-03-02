@@ -166,7 +166,7 @@ public:
     /* Operator Overloads                                                              */
     /*---------------------------------------------------------------------------------*/
     BSTree&             operator=   (const BSTree& rhs);
-    const BinTreeNode*  operator[]  (int index)             const;
+    const BinTree*      operator[]  (int index)             const;
 
     /*---------------------------------------------------------------------------------*/
     /* Getter Functions                                                                */

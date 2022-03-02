@@ -12,31 +12,31 @@
 
 int main()
 {
-    int bstNumbers[8] = {4,2,1,3,6,5,7,0};
+    // int bstNumbers[10] = {5,2,0,1,3,4,8,6,7,9};
 
-    BST tree;
-    for (int i = 0; i < 8; ++i)
-    {
-        std::cout << "Inserting: " << bstNumbers[i] << std::endl;
-        tree.Insert(bstNumbers[i]);
-    }
+    // BST tree;
+    // for (int i = 0; i < 10; ++i)
+    // {
+    //     std::cout << "Inserting: " << bstNumbers[i] << std::endl;
+    //     tree.Insert(bstNumbers[i]);
+    // }
 
-    tree.PreOrder();
-    std::cout << std::endl;
+    // tree.PreOrder();
+    // std::cout << std::endl;
 
-    std::cout << tree[3]->Value << std::endl;
-    std::cout << tree[7]->Value << std::endl;
+    // std::cout << tree[3]->Value << std::endl;
+    // std::cout << tree[7]->Value << std::endl;
 
-    const BSTNode* node = tree[9];
+    // const BSTNode* node = tree[9];
 
-    if (node)
-    {
-        std::cout << node->Value << std::endl;
-    }
-    else
-    {
-        std::cout << "Not found!" << std::endl;
-    }
+    // if (node)
+    // {
+    //     std::cout << node->Value << std::endl;
+    // }
+    // else
+    // {
+    //     std::cout << "Not found!" << std::endl;
+    // }
 
     // std::cout << "InOrder: ";
     // tree.InOrder();
@@ -51,29 +51,29 @@ int main()
     //     tree.Remove(bstNumbers[i]);
     // }
 
-    // int avlNumbers[7] = {6,4,5,7,2,1,3};
+    int avlNumbers[9] = {2,5,9,8,1,4,7,3,6};
 
-    // AVL tree;
+    AVL tree;
     // std::cout << "Is Tree Empty? " << (tree.Empty() ? "Yes" : "No") << std::endl;
 
-    // for (int i = 0; i < 7; ++i)
-    // {
-    //     std::cout << "Inserting " << avlNumbers[i] << std::endl;
-    //     tree.Insert(avlNumbers[i]);
-    // }
+    for (int i = 0; i < 9; ++i)
+    {
+        std::cout << "Inserting " << avlNumbers[i] << std::endl;
+        tree.Insert(avlNumbers[i]);
+    }
 
     // std::cout << "Is Tree Empty? " << (tree.Empty() ? "Yes" : "No") << std::endl;
     // std::cout << "Height: " << tree.Height() << std::endl;
     // std::cout << "Size: " << tree.Size() << std::endl;
 
     // std::cout << "PreOrder: ";
-    // tree.PreOrder();
-    // std::cout << std::endl;
+    tree.PreOrder();
+    std::cout << std::endl;
 
-    // tree.Remove(7);
+    tree.Remove(7);
     // std::cout << "PreOrder: ";
-    // tree.PreOrder();
-    // std::cout << std::endl;
+    tree.PreOrder();
+    std::cout << std::endl;
 
     // tree.Remove(6);
     // std::cout << "PreOrder: ";

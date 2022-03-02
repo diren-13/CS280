@@ -288,9 +288,11 @@ BSTNode* AVL::insert(BSTNode* node, int value)
     }
     else
     {
-        node->BalanceFactor = getBalance(node);
         return node;
     }
+
+    ++(node->Count);
+    node->BalanceFactor = getBalance(node);
     
     // Rotate Right
     if (node->BalanceFactor > 1)
@@ -359,9 +361,8 @@ BSTNode* AVL::remove(BSTNode* node, int value)
 
     if (node == nullptr)
         return node;
-
-    // std::cout << "Balancing from: " << node->Value << std::endl;
-
+    
+    --(node->Count);
     node->BalanceFactor = getBalance(node);
 
     // Rotate Right
@@ -414,6 +415,10 @@ BSTNode* AVL::rotateLeft(BSTNode* node)
     x->Left = node;
     node->Right = y;
 
+    // Fix counts
+    x->Count = node->Count;
+    node->Count = x->Right ? x->Right->Count : 1;
+
     return x;
 }
 
@@ -434,6 +439,10 @@ BSTNode* AVL::rotateRight(BSTNode* node)
 
     x->Right = node;
     node->Left = y;
+
+    // Fix counts
+    x->Count = node->Count;
+    node->Count = x->Left ? x->Left->Count : 1;
     
     return x;
 }

@@ -32,6 +32,7 @@
 *.app
 
 # Subfolders
-*/.vscode
+*.vscode
 */docs
 */Doxyfile
+*.vs

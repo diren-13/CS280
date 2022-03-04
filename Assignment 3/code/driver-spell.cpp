@@ -15,7 +15,7 @@
 #include "ObjectAllocator.h"
 
 #define SHOW_COUNTSx
-const char *gFile = "lexicon.txt";
+const char *gFile = "../data/dictionaries/lexicon.txt";
 bool gShowTree = false;
 
 using std::cout;
@@ -194,7 +194,7 @@ char *mystrupr(char *string)
   while (*p)
   {
     if (*p >= 'a' && *p <= 'z')
-      *p -= 32;
+      // *p -= static_cast<char>(32);
     p++;
   }
 
@@ -437,13 +437,13 @@ int main(int argc, char **argv)
     int safewait;
   };
 
-  typedef int T;
+  // typedef int T;
   typedef std::string U;
   TimedTest Tests[] = {
-                       {TestSpellCheck1<BSTree<U> >,  10000, 5000}, 
-                       {TestSpellCheck1<AVLTree<U> >, 10000, 5000}, 
-                       {TestSpellCheck2<BSTree<U> >,  10000, 5000}, 
-                       {TestSpellCheck2<AVLTree<U> >, 10000, 5000}, 
+                       {TestSpellCheck1<BSTree<U> >,  10000, 5000} 
+                      //  {TestSpellCheck1<AVLTree<U> >, 10000, 5000}, 
+                      //  {TestSpellCheck2<BSTree<U> >,  10000, 5000}, 
+                      //  {TestSpellCheck2<AVLTree<U> >, 10000, 5000}, 
                       };
 
   int num = sizeof(Tests) / sizeof(*Tests);

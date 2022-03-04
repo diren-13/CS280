@@ -5,7 +5,7 @@ ObjectAllocator::ObjectAllocator(size_t ObjectSize, const OAConfig& config) : Co
 	ObjectSize_ = ObjectSize;
 }
 
-void *ObjectAllocator::Allocate() throw (OAException)
+void* ObjectAllocator::Allocate() throw (OAException)
 {
 	return new char[ObjectSize_];
 }

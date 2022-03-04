@@ -12,14 +12,29 @@
 
 int main()
 {
-    // int bstNumbers[10] = {5,2,0,1,3,4,8,6,7,9};
+    // int nums[9] = {2,,8,3,5,1,4,6,9,7};
 
     // BST tree;
     // for (int i = 0; i < 10; ++i)
     // {
-    //     std::cout << "Inserting: " << bstNumbers[i] << std::endl;
-    //     tree.Insert(bstNumbers[i]);
+    //     std::cout << "Inserting: " << nums[i] << std::endl;
+    //     tree.Insert(nums[i]);
     // }
+
+    // tree.PreOrder();
+    // std::cout << std::endl;
+
+    // tree.Clear();
+    // tree.PreOrder();
+    // std::cout << std::endl;
+
+    // tree.Remove(6);
+    // tree.PreOrder();
+    // std::cout << std::endl;
+
+    // tree.Remove(8);
+    // tree.PreOrder();
+    // std::cout << std::endl;
 
     // tree.PreOrder();
     // std::cout << std::endl;
@@ -51,32 +66,37 @@ int main()
     //     tree.Remove(bstNumbers[i]);
     // }
 
-    int avlNumbers[9] = {2,5,9,8,1,4,7,3,6};
+    int nums[10] = {0,1,2,3,4,5,6,7,8,9};
 
     AVL tree;
     // std::cout << "Is Tree Empty? " << (tree.Empty() ? "Yes" : "No") << std::endl;
 
-    for (int i = 0; i < 9; ++i)
+    for (int i = 0; i < 10; ++i)
     {
-        std::cout << "Inserting " << avlNumbers[i] << std::endl;
-        tree.Insert(avlNumbers[i]);
+        tree.Insert(nums[i]);
+        tree.PreOrder();
+        std::cout << std::endl;
     }
 
+    for (int i = 0; i < 12; ++i)
+    {
+        tree.Remove(nums[i]);
+        tree.PreOrder();
+        std::cout << std::endl;
+    }
     // std::cout << "Is Tree Empty? " << (tree.Empty() ? "Yes" : "No") << std::endl;
     // std::cout << "Height: " << tree.Height() << std::endl;
     // std::cout << "Size: " << tree.Size() << std::endl;
 
     // std::cout << "PreOrder: ";
-    tree.PreOrder();
-    std::cout << std::endl;
+    // tree.PreOrder();
+    // std::cout << std::endl;
 
-    tree.Remove(7);
-    // std::cout << "PreOrder: ";
-    tree.PreOrder();
-    std::cout << std::endl;
+    // tree.Remove(7);
+    // tree.PreOrder();
+    // std::cout << std::endl;
 
     // tree.Remove(6);
-    // std::cout << "PreOrder: ";
     // tree.PreOrder();
     // std::cout << std::endl;
 

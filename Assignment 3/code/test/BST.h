@@ -28,6 +28,7 @@ class BST
 {
 public:
     BST();
+    BST(const BST& rhs);
     ~BST();
 
     const BSTNode*  operator[]      (int index)                 const;
@@ -40,6 +41,7 @@ public:
     void            Insert          (int value);
     void            Remove          (int value);
     bool            Find            (int value)                 const;
+    void            Clear           ();
 
     void            PreOrder        ()             const;
     void            InOrder         ()             const;
@@ -60,6 +62,9 @@ protected:
     int                 subTreeSize     (const BSTNode* node)       const;
     
     BSTNode*    root;
+
+private:
+    void                recursiveCopy   (BSTNode*& dest, const BSTNode* src);
 };
 
 class AVL : public BST

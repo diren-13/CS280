@@ -21,7 +21,6 @@
 /*-------------------------------------------------------------------------------------*/
 /* Type  Definitions                                                                   */
 /*-------------------------------------------------------------------------------------*/
-
 /************************************************************************************//*!
  @brief     Exception Class for the AVL/BST classes.
 *//*************************************************************************************/
@@ -147,7 +146,7 @@ public:
     @param      oa
         A pointer to the object allocator to use for memory management.
     @param      ShareOA
-        I don't know what this is for rn.
+        If the allocator is shared with others
     *//*********************************************************************************/
     BSTree(ObjectAllocator* oa = nullptr, bool ShareOA = false);
     /********************************************************************************//*!
@@ -165,8 +164,24 @@ public:
     /*---------------------------------------------------------------------------------*/
     /* Operator Overloads                                                              */
     /*---------------------------------------------------------------------------------*/
+    /********************************************************************************//*!
+    @brief      Copy Assignment for a BSTree.
+
+    @param      rhs
+        A BSTree to copy data from.
+
+    @returns    A reference to the copied tree.
+    *//*********************************************************************************/
     BSTree&             operator=   (const BSTree& rhs);
-    const BinTree*      operator[]  (int index)             const;
+    /********************************************************************************//*!
+    @brief      Index access operator for the BSTree.
+
+    @param      index
+        The index of the node.
+
+    @returns    A node at the index.
+    *//*********************************************************************************/
+    const BinTreeNode*  operator[]  (int index)             const;
 
     /*---------------------------------------------------------------------------------*/
     /* Getter Functions                                                                */
@@ -220,66 +235,147 @@ public:
     /********************************************************************************//*!
     @brief      Finds an element in the tree
 
-    @param      
-        
-    @param      
-        
+    @param      value
+        The value to search for.
+    @param      compares
+        The number of times the find function is recursively invoked.
 
-    @returns    
+    @returns    True if the value is found.
     *//*********************************************************************************/
-    bool            find    (const T& value, unsigned &compares)    const;
+    bool            find    (const T& value, unsigned& compares)    const;
 
   protected:
-    /********************************************************************************//*!
-    @brief      
-
-    @returns    
-    *//*********************************************************************************/
-    BinTree&        get_root            ();
-    /********************************************************************************//*!
-    @brief      
-
-    @param      
-        
-
-    @returns    
-    *//*********************************************************************************/
-    BinTree         make_node           (const T& value)                        const;
-    /********************************************************************************//*!
-    @brief      
-
-    @param      
-        
-    *//*********************************************************************************/
-    void            free_node           (BinTree node);
-    /********************************************************************************//*!
-    @brief      
-
-    @param      
-        
-
-    @returns
-    *//*********************************************************************************/
-    int             tree_height         (BinTree tree)                          const;
-    /********************************************************************************//*!
-    @brief      
-
-    @param      
-        
-    @param      
-        
-    *//*********************************************************************************/
-    void            find_predecessor    (BinTree tree, BinTree &predecessor)    const;
-
-  private:
     /*---------------------------------------------------------------------------------*/
     /* Data Members                                                                    */
     /*---------------------------------------------------------------------------------*/
-    ObjectAllocator*    oa;
-    BinTree             root;
+    ObjectAllocator*    allocator;
+    bool                shareOA;
+    BinTree             rootNode;
+
+    /*---------------------------------------------------------------------------------*/
+    /* Function Members                                                                */
+    /*---------------------------------------------------------------------------------*/
+    /********************************************************************************//*!
+    @brief      Getter for the root.
+
+    @returns    A reference to the root node.
+    *//*********************************************************************************/
+    BinTree&            get_root        ();
+    /********************************************************************************//*!
+    @brief      Getter for the allocator.
+
+    @returns    A reference to the root node.
+    *//*********************************************************************************/
+    ObjectAllocator*&   get_allocator   ();
+    /********************************************************************************//*!
+    @brief      Getter for the root.
+
+    @returns    A reference to the root node.
+    *//*********************************************************************************/
+    bool&               get_shared_oa   ();
+    /********************************************************************************//*!
+    @brief      Creates a node.
+
+    @param      value
+        The value of the node to create.
+
+    @returns    The newly created node.
+    *//*********************************************************************************/
+    BinTree         make_node       (const T& value)                    const;
+    /********************************************************************************//*!
+    @brief      Destroys a node.
+
+    @param      node
+        The node to destroy.
+    *//*********************************************************************************/
+    void            free_node       (BinTree node);
+    /********************************************************************************//*!
+    @brief      Gets the height of a sub tree.
+
+    @param      tree
+        The root node of the subtree.
+
+    @returns    The height of the sub tree.
+    *//*********************************************************************************/
+    int             tree_height     (BinTree tree)                          const;
+    /********************************************************************************//*!
+    @brief      Finds the predecessor of a node.
+
+    @param      tree
+        The node to find the predecessor of.
+    @param      predecessor
+        The predecessor of the node.
+    *//*********************************************************************************/
+    void            find_predecessor  (BinTree tree, BinTree &predecessor)      const;
+    /********************************************************************************//*!
+    @brief      Inserts a node with a new value into the tree.
+
+    @param      tree
+        The root node of the subtree.
+    @param      value
+        The new value to insert.
+
+    @returns    The root node of the subtree.
+    *//*********************************************************************************/
+    virtual BinTree insert_node     (BinTree& tree, const T& value);
+    /********************************************************************************//*!
+    @brief      Removes a node with the specified from the tree.
+
+    @param      tree
+        The root node of the subtree.
+    @param      value
+        The value to search for to remove.
+
+    @returns    The root node of the subtree.fr
+    *//*********************************************************************************/
+    virtual BinTree remove_node     (BinTree& tree, const T& value);
+    
+  private:
+    /*---------------------------------------------------------------------------------*/
+    /* Function Members                                                                */
+    /*---------------------------------------------------------------------------------*/
+    /********************************************************************************//*!
+    @brief      Recursively copies nodes.
+
+    @param      dest
+        The root node of the subtree.
+    @param      src
+        The value to search for to remove.
+    *//*********************************************************************************/
+    void                recursive_copy  (BinTree& dest, const BinTree src);
+    /********************************************************************************//*!
+    @brief      Searches for a node with a matching value
+
+    @param      tree
+        The root node of the subtree to search in.
+    @param      value
+        The value to search for.
+    @param      numInvokes
+        The number of times this function has been called.
+
+    @returns    True if the value is been found.
+    *//*********************************************************************************/
+    bool                find_value      (const BinTree tree, const T& value, unsigned& numInvokes)  const;
+    /********************************************************************************//*!
+    @brief      Searches for a node with a a given index.
+
+    @param      tree
+        The root node of the subtree.
+    @param      index
+        The index to search for.
+
+    @returns    The node that has been found.
+    *//*********************************************************************************/
+    const BinTreeNode*  find_node       (const BinTree tree, int index)                             const;
+    /********************************************************************************//*!
+    @brief      Recursively destroys nodes.
+
+    @param      tree
+        The root node of the tree to destroy from.
+    *//*********************************************************************************/
+    void                recursive_free  (BinTree tree);
 };
 
-// #include "BSTree.cpp"
+#include "BSTree.cpp"
 
 #endif
-//---------------------------------------------------------------------------

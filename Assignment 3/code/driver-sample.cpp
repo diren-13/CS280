@@ -296,9 +296,9 @@ void Test3(void)
     for (int i = 0; i < size; i++)
     {
       tree.insert(vals[i]);
-      //std::cout << "====================================\n";
-      //std::cout << "Inserting: " << vals[i] << std::endl;
-      //PrintBST(tree);
+      // std::cout << "====================================\n";
+      // std::cout << "Inserting: " << vals[i] << std::endl;
+      // PrintBST(tree);
     }
   
     std::cout << "remove 2, 6, 3:\n";
@@ -357,7 +357,7 @@ void Test4(void)
   {
     for (int i = 0; i < size; i++)
       tree.insert(vals[i]);
-
+      
     std::cout << "remove all and then some:\n";
 
     for (int i = 0; i < size + 2; i++)
@@ -403,7 +403,7 @@ void Test5(void)
     for (int i = 0; i < size; i++)
       tree.insert(vals[i]);
 
-    std::cout << "clear:\n";
+    std::cout << "clear:" << std::endl;
     tree.clear();
 
     std::cout << "height: " << tree.height() << std::endl;
@@ -882,7 +882,7 @@ int main(int argc, char **argv)
                        {Test2<BSTree<T> >,         1000,  500}, //  2 sorted insert
                        {Test3<BSTree<T> >,         1000,  500}, //  3 random insert/remove some
                        {Test4<BSTree<T> >,         1000,  500}, //  4 random insert/remove all
-                       {Test5<BSTree<T> >,         1000,  500}, //  5 random insert/clear
+                       {Test5<BSTree<T> >,         1000,  500},  //  5 random insert/clear
                        {Test6<BSTree<T> >,         1000,  500}, //  6 random insert/find
 
                        {Test1<AVLTree<T> >,        1000,  500}, //  7 random insert
@@ -893,7 +893,7 @@ int main(int argc, char **argv)
                        {Test6<AVLTree<T> >,        1000,  500}, // 12 random insert/find
 
                        {Test7<BSTree<T> >,         1000,  500}, // 13 assignment
-                       {Test8<BSTree<T> >,         1000,  500}, // 14 copy constructor
+                       {Test8<BSTree<T> >,         1000,  500},  // 14 copy constructor
 
                        {Test7<AVLTree<T> >,        1000,  500}, // 15 assignment
                        {Test8<AVLTree<T> >,        1000,  500}, // 16 copy constructor
@@ -902,8 +902,8 @@ int main(int argc, char **argv)
                        {TestIndex<AVLTree<char> >, 1000,  500}, // 18 random insert/select
                        {TestStrings<BSTree<U> >,   1000,  500}, // 19 random insert strings/select
                        {TestStrings<AVLTree<U> >,  1000,  500}, // 20 random insert strings/select
-                       {AVLStress,                10000, 3000}, // 21 stress avl only
-                      // {AVLStress<true>,                10000, 3000}, // 22 stress avl with balance factor
+                       {AVLStress,                10000, 3000} // 21 stress avl only
+                      // {AVLStress<true>,                10000, 3000} // 22 stress avl with balance factor
 
                       };
 

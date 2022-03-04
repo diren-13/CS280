@@ -36,6 +36,12 @@ BST::BST()
 : root { nullptr }
 {}
 
+BST::BST(const BST& rhs)
+: root { nullptr }
+{
+    recursiveCopy(root, rhs.root);
+}
+
 BST::~BST()
 {
     removeNode(root);
@@ -81,6 +87,11 @@ bool BST::Find(int value) const
     return find(root, value);
 }
 
+void BST::Clear()
+{
+    removeNode(root);
+}
+
 void BST::PreOrder() const
 {
     preOrder(root);
@@ -110,6 +121,7 @@ void BST::removeNode(BSTNode* node)
     removeNode(node->Left);
     removeNode(node->Right);
 
+    node = nullptr;
     delete node;
 }
 
@@ -273,6 +285,16 @@ int BST::subTreeSize(const BSTNode* node) const
     return (node) ? subTreeSize(node->Left) + subTreeSize(node->Right) + 1 : 0;
 }
 
+void BST::recursiveCopy(BSTNode*& dest, const BSTNode* src)
+{
+    if (src == nullptr)
+        return;
+
+    dest = newNode(src->Value);
+    recursiveCopy(dest->Left, src->Left);
+    recursiveCopy(dest->Right, src->Right);
+}
+
 BSTNode* AVL::insert(BSTNode* node, int value)
 {
     if (node == nullptr)
@@ -280,18 +302,17 @@ BSTNode* AVL::insert(BSTNode* node, int value)
         
     if (value < node->Value)
     {
+        ++(node->Count);
         node->Left = insert(node->Left, value);
     }
     else if (value > node->Value)
     {
+        ++(node->Count);
         node->Right = insert(node->Right, value);
     }
     else
-    {
         return node;
-    }
-
-    ++(node->Count);
+    
     node->BalanceFactor = getBalance(node);
     
     // Rotate Right
@@ -311,7 +332,6 @@ BSTNode* AVL::insert(BSTNode* node, int value)
         {
             node->Right = rotateRight(node->Right);
         }
-
         return rotateLeft(node);
     }
 
@@ -327,10 +347,12 @@ BSTNode* AVL::remove(BSTNode* node, int value)
     if (value < node->Value)
     {
         node->Left = remove(node->Left, value);
+        --(node->Count);
     }
     else if (value > node->Value)
     {
         node->Right = remove(node->Right, value);
+        --(node->Count);
     }
     else 
     {
@@ -356,19 +378,19 @@ BSTNode* AVL::remove(BSTNode* node, int value)
             BSTNode* successor = findSuccessor(node->Right);
             node->Value = successor->Value;
             node->Right= remove(node->Right, successor->Value);
+            --(node->Count);
         }
     }
 
     if (node == nullptr)
         return node;
     
-    --(node->Count);
     node->BalanceFactor = getBalance(node);
 
     // Rotate Right
     if (node->BalanceFactor > 1)
     {
-        if (getBalance(node->Left) < 0)
+        if (node->Left->BalanceFactor < 0)
         {
             node->Left = rotateLeft(node->Left);
         }
@@ -378,7 +400,7 @@ BSTNode* AVL::remove(BSTNode* node, int value)
 
     if (node->BalanceFactor < -1)
     {
-        if (getBalance(node->Right) > 0)
+        if (node->Right->BalanceFactor > 0)
         {
             node->Right = rotateRight(node->Right);
         }
@@ -416,8 +438,8 @@ BSTNode* AVL::rotateLeft(BSTNode* node)
     node->Right = y;
 
     // Fix counts
-    x->Count = node->Count;
-    node->Count = x->Right ? x->Right->Count : 1;
+    node->Count = (node->Left ? node->Left->Count : 0) + (node->Right ? node->Right->Count : 0) + 1;
+    x->Count    = (x->Left ? x->Left->Count : 0) + (x->Right ? x->Right->Count : 0) + 1;
 
     return x;
 }
@@ -434,15 +456,15 @@ BSTNode* AVL::rotateRight(BSTNode* node)
             C   D
     ************/
 
-    BSTNode *x = node->Left;
-    BSTNode *y = x->Right;
+    BSTNode* x = node->Left;
+    BSTNode* y = x->Right;
 
     x->Right = node;
     node->Left = y;
 
     // Fix counts
-    x->Count = node->Count;
-    node->Count = x->Left ? x->Left->Count : 1;
+    node->Count = (node->Left ? node->Left->Count : 0) + (node->Right ? node->Right->Count : 0) + 1;
+    x->Count    = (x->Left ? x->Left->Count : 0) + (x->Right ? x->Right->Count : 0) + 1;
     
     return x;
 }

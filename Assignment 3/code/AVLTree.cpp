@@ -238,14 +238,14 @@ int AVLTree<T>::get_balance(const typename BSTree<T>::BinTreeNode* tree) const
 template <typename T>
 typename AVLTree<T>::BinTree AVLTree<T>::rotate_left(typename AVLTree<T>::BinTree tree)
 {
-    /************
+	/************
           n
          / \
-        x   A
-       / \
-      B   y
-     / \
-    C   D
+        A   x
+           / \
+          y   B
+             / \
+            C   D
     ************/
 
     typename AVLTree<T>::BinTree x = tree->right;
@@ -274,11 +274,11 @@ typename AVLTree<T>::BinTree AVLTree<T>::rotate_right(typename AVLTree<T>::BinTr
     /************
           n
          / \
-        A   x
-           / \
-          y   B
-             / \
-            C   D
+        x   A
+       / \
+      B   y
+     / \
+    C   D
     ************/
 
     typename AVLTree<T>::BinTree x = tree->left;

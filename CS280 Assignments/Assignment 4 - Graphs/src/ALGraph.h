@@ -12,7 +12,7 @@
 #ifndef ALGRAPH_H
 #define ALGRAPH_H
 
-// Standard Librareis
+// Standard Libraries
 #include <vector>
 #include <list>
 #include <utility>      // std::pair

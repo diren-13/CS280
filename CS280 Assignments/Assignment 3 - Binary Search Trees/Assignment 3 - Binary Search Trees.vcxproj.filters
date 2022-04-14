@@ -32,10 +32,10 @@
     <ClInclude Include="src\ObjectAllocator.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\AVLTree.hpp">
+    <ClInclude Include="src\BSTree.hpp">
       <Filter>Source Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\BSTree.hpp">
+    <ClInclude Include="src\AVLTree.hpp">
       <Filter>Source Files</Filter>
     </ClInclude>
   </ItemGroup>

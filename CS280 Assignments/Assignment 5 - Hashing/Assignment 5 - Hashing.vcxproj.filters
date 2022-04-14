@@ -24,6 +24,9 @@
     <ClInclude Include="src\ObjectAllocator.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\ChHashTable.cpp">
+      <Filter>Source Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\driver-sample.cpp">
@@ -33,9 +36,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\ObjectAllocator.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\ChHashTable.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

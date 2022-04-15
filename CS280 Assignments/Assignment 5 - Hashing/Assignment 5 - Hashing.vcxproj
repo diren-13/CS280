@@ -145,6 +145,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\ChHashTable.cpp" />
+    <ClCompile Include="main.cpp" />
     <ClCompile Include="src\driver-sample.cpp" />
     <ClCompile Include="src\ObjectAllocator.cpp" />
     <ClCompile Include="src\support.cpp" />

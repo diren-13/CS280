@@ -121,6 +121,7 @@ public:
     , Probes_       (0)
     , Expansions_   (0)
     , HashFunc_     (0)
+    , Allocator_    (nullptr)
     {};
 };
 
@@ -159,7 +160,7 @@ public:
         /* Constructor                                                                 */
         /*-----------------------------------------------------------------------------*/
         /****************************************************************************//*!
-\        @brief     Constructor for HTConfig
+         @brief     Constructor for HTConfig
         *//*****************************************************************************/
         HTConfig
         (
@@ -169,11 +170,11 @@ public:
             double      GrowthFactor        = 2.0,
             FREEPROC    FreeProc            = 0
         )
-        : InitialTableSize_(InitialTableSize)
-        , HashFunc_(HashFunc)
-        , MaxLoadFactor_(MaxLoadFactor)
-        , GrowthFactor_(GrowthFactor)
-        , FreeProc_(FreeProc)
+        : InitialTableSize_ (InitialTableSize)
+        , MaxLoadFactor_    (MaxLoadFactor)
+        , GrowthFactor_     (GrowthFactor)
+        , HashFunc_         (HashFunc)
+        , FreeProc_         (FreeProc)
         {}
     };
 
@@ -200,7 +201,8 @@ public:
             The data for the node.
         *//*****************************************************************************/
         ChHTNode(const T& data)
-        : Data(data)
+        : Data  (data)
+        , Next  (nullptr)
         {};
     };
 
@@ -245,7 +247,17 @@ public:
     /*---------------------------------------------------------------------------------*/
     /* Getter Functions                                                                */
     /*---------------------------------------------------------------------------------*/
+    /********************************************************************************//*!
+     @brief     Getter for the stats of a ChHashTable.
+
+     @returns   The stats for a ChHashTable
+    *//*********************************************************************************/
     HTStats             GetStats() const;
+    /********************************************************************************//*!
+     @brief     Getter for the table of a ChHashTable.
+
+     @returns   A pointer to the start of the array of head nodes.
+    *//*********************************************************************************/
     const ChHTHeadNode* GetTable() const;
 
     /*---------------------------------------------------------------------------------*/
@@ -292,22 +304,47 @@ public:
     void clear();
 
   private:
-    /*---------------------------------------------------------------------------------*/
-    /* Type Definitions                                                                */
-    /*---------------------------------------------------------------------------------*/
-    typedef HASHFUNC SpawnHornTail;
 
     /*---------------------------------------------------------------------------------*/
     /* Data Members                                                                    */
     /*---------------------------------------------------------------------------------*/
     ChHTHeadNode*       heads;
+    HTStats*            stats;
 
-    HTStats             stats;
     HTConfig            config;
 
     /*---------------------------------------------------------------------------------*/
     /* Function Members                                                                */
     /*---------------------------------------------------------------------------------*/
+    /********************************************************************************//*!
+     @brief     Inserts a node at the head of a list
+
+     @param     head
+        The head of the list to insert into.
+     @param     key
+        The key of the new node.
+     @param     data
+        The data of the new node
+    *//*********************************************************************************/
+    void insertNode     (ChHTHeadNode* head, const char* key, const T& data);
+    /********************************************************************************//*!
+     @brief     Deletes a node from the hash table
+
+     @param     node
+        The node to delete.
+    *//*********************************************************************************/
+    void deleteNode     (ChHTNode* node);
+    /********************************************************************************//*!
+     @brief     Deletes all the nodes in a head node.
+
+     @param     head
+        The head to delete.
+    *//*********************************************************************************/
+    void deleteHead     (ChHTHeadNode* head);
+    /********************************************************************************//*!
+     @brief     Grows the table
+    *//*********************************************************************************/
+    void growTable      ();
 
 };
 
